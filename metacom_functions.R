@@ -16,8 +16,11 @@ init_landscape <- function(patches, x_dim = 100, y_dim = 100){
 init_species <- function(species = 10, 
                          env_niche_optima = "random",
                          env_niche_breadth = 0.5,
-                         dispersal_exp = 0.1,
-                         max_r = 5){
+                         kernel_exp = 0.1,
+                         max_r = 5,
+                         dispersal_rate = 0.1,
+                         survival = 0.8,
+                         germ = 0.5){
   
   # generate niche optima
 
@@ -35,8 +38,11 @@ init_species <- function(species = 10,
   }
   
   # generate dispersal rates
-  if(length(dispersal_exp) != species & length(dispersal_exp) != 1){
-    stop("Enter a number or a vector of length 'species' for dispersal_exp.")
+  if(length(kernel_exp) != species & length(kernel_exp) != 1){
+    stop("Enter a number or a vector of length 'species' for kernel_exp.")
+  }
+  if(length(dispersal_rate) != species & length(dispersal_rate) != 1){
+    stop("Enter a number or a vector of length 'species' for dispersal_rate.")
   }
   
   # generate max growth rates
@@ -49,7 +55,10 @@ init_species <- function(species = 10,
     max_r = max_r,
     env_niche_optima = optima,
     env_niche_breadth = env_niche_breadth,
-    dispersal_exp = dispersal_exp
+    kernel_exp = kernel_exp,
+    dispersal_rate = dispersal_rate,
+    survival = survival,
+    germ = germ
   )
   
   matplot(sapply(X = 1:species, FUN = function(x) {
@@ -81,7 +90,7 @@ generate_dispersal_matrices <- function(landscape, species,
   
   disp_array <- array(dim = c(patches, patches, species))
   for(k in 1:species){
-    spec_dist_mat <- exp(-species_traits[k,"dispersal_exp"] * dist_mat)
+    spec_dist_mat <- exp(-species_traits[k,"kernel_exp"] * dist_mat)
     # next, make all cols sum to 1
     disp_array[,,k] <- apply(spec_dist_mat, 1, function(x) x / sum(x))
     if (sum(colSums(disp_array[,,k]) > 1.001) > 0) warning (
@@ -107,7 +116,27 @@ compute_r_xt <- function(species_traits = species_traits, env = env, species = s
   return(r_ixt)
 }
 
+survival <- function(N, species_traits){
+  s_prop <- species_traits$survival * (1-species_traits$germ)
+  if(nrow(species_traits) != ncol(N)) {stop("Dimensions off")}
+  
+  N_surv <- N * 0
+  for(i in 1:ncol(N)){
+    N_surv[,i] <- N[,i] * s_prop[i]
+  }
+  return(N_surv)
+}
 
+growth <- function(N, species_traits, r, int_mat){
+  N_growth <- N*0
+  germ <- matrix(species_traits$germ, nrow = 1)
+  
+  for(i in 1:species){
+    N_growth[,i] <- germ[i]*N[,i]*r[,i]
+  }
+  N_next <- N_growth / (1 + N%*%int_mat)
+  return(N_next)
+}
 
 # THompson model
 env_generate <- function(landscape, env.df, env1Scale = 500, timesteps = 1000, plot = TRUE){
