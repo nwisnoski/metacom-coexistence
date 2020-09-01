@@ -3,6 +3,7 @@ library("data.table")
 library("som.nn")
 library("progress")
 library("RandomFields")
+library("vegan")
 source("metacom_functions.R")
 
 
@@ -12,7 +13,7 @@ x_dim <- 100
 y_dim <- 100
 patches <- 100
 species <- 20
-extirp_prob <- 0
+extirp_prob <- 0.001
 
 # int mat params
 intra = 1 
@@ -26,7 +27,7 @@ comp_scaler = 0.05
 #zeta <- 0 # magnitude of the effect of env. stochasticity
 
 
-timesteps <- 2200
+timesteps <- 2000
 initialization <- 200
 burn_in <- 800
 
@@ -35,101 +36,162 @@ burn_in <- 800
 landscape <- init_landscape(patches = patches, x_dim = x_dim, y_dim = y_dim)
 env_df <- env_generate(landscape = landscape, env1Scale = 500, timesteps = timesteps+burn_in, plot = TRUE)
 
-dynamics_out <- data.table()
 
-# init_community
-species_traits <- init_species(species, dispersal_rate = 0.001, env_niche_breadth = 0.25)
-disp_array <- generate_dispersal_matrices(landscape, species, patches, species_traits, torus = FALSE)
-int_mat <- species_int_mat(species = species, intra = intra, 
+disp_rates <- 10^seq(-5, 0, length.out = 50)
+germ_fracs <- seq(.1,1, length.out = 4)
+surv_fracs <- seq(.1,1, length.out = 4)
+
+
+dynamics_total <- data.table()
+
+# use the same interaction matrix
+int_mat <- species_int_mat(species = species, intra = intra,
                            min_inter = min_inter, max_inter = max_inter,
                            comp_scaler = comp_scaler, plot = TRUE)
-
-pb <- progress_bar$new(total = initialization + burn_in + timesteps)
-N <- init_community(initialization = initialization, species = species, patches = patches)
-
-for(i in 1:(initialization + burn_in + timesteps)){
-  if(i <= initialization){
-    if(i %in% seq(10, 100, by = 10)){
-      N <- N + matrix(rpois(n = species*patches, lambda = 0.5), nrow = patches, ncol = species)
+#sim <- 1
+sim_length <- (initialization + burn_in + timesteps) * length(disp_rates)*length(germ_fracs)*length(surv_fracs)
+pb <- progress_bar$new(total = sim_length)
+for(disp in disp_rates){
+  for(germ in germ_fracs){
+    for(surv in surv_fracs){
+      #cat("Running sim", sim, "of", length(disp_rates)*length(germ_fracs)*length(surv_fracs))
+      #sim <- sim + 1
+      
+      dynamics_out <- data.table()
+      # init_community
+      species_traits <- init_species(species, 
+                                     dispersal_rate = disp,
+                                     germ = germ,
+                                     survival = surv,
+                                     env_niche_breadth = 0.5, 
+                                     env_niche_optima = "even")
+      disp_array <- generate_dispersal_matrices(landscape, species, patches, species_traits, torus = FALSE)
+      # int_mat <- species_int_mat(species = species, intra = intra,
+      #                            min_inter = min_inter, max_inter = max_inter,
+      #                            comp_scaler = comp_scaler, plot = TRUE)
+      
+      
+      N <- init_community(initialization = initialization, species = species, patches = patches)
+      
+      for(i in 1:(initialization + burn_in + timesteps)){
+        if(i <= initialization){
+          if(i %in% seq(10, 100, by = 10)){
+            N <- N + matrix(rpois(n = species*patches, lambda = 0.5), nrow = patches, ncol = species)
+          }
+          env <- env_df$env1[env_df$time == 1]
+        } else {
+          env <- env_df$env1[env_df$time == (i - initialization)]
+        }
+        
+        # compute r
+        r <- compute_r_xt(species_traits, env = env, species = species)
+        
+        # compute growth
+        #N_hat <- N*r / (1 + N%*%int_mat)
+        N_hat <- survival(N, species_traits) + growth(N, species_traits, r, int_mat)
+        N_hat[N_hat < 0] <- 0
+        N_hat <- matrix(rpois(n = species*patches, lambda = N_hat), ncol = species, nrow = patches)
+        
+        # determine emigrants
+        E <- matrix(nrow = patches, ncol = species)
+        for(s in 1:species){
+          E[,s] <- rbinom(n = patches, size = N_hat[,s], prob = species_traits$dispersal_rate[s])
+        }
+        dispSP <- colSums(E)
+        
+        I_hat_raw <- disp_array[,,1]%*%E
+        I_hat <- t(t(I_hat_raw)/colSums(I_hat_raw))
+        I_hat[is.nan(I_hat)] <- 1
+        I <- sapply(1:species, function(x) {
+          if(dispSP[x]>0){
+            table(factor(sample(x = patches, size = dispSP[x], replace = TRUE, prob = I_hat[,x]), levels = 1:patches))
+          } else {rep(0, patches)}
+        })
+        
+        
+        I_hat_raw <- matrix(nrow = patches, ncol = species)
+        
+        for(s in 1:species){
+          I_hat_raw[,s] <- disp_array[,,s] %*% E[,s]
+        }
+        
+        # standardize so colsums = 1
+        I_hat <- t(t(I_hat_raw)/colSums(I_hat_raw))
+        I_hat[is.nan(I_hat)] <- 1
+        
+        I <- sapply(1:species, function(x) {
+          if(dispSP[x]>0){
+            table(factor(
+              sample(x = patches, size = dispSP[x], replace = TRUE, prob = I_hat[,x]),
+              levels = 1:patches))
+          } else {rep(0, patches)}
+        })
+        
+        N <- N_hat - E + I
+        
+        N[rbinom(n = species * patches, size = 1, prob = extirp_prob) > 0] <- 0
+        
+        dynamics_out <- rbind(dynamics_out, 
+                              data.table(N = c(N),
+                                         patch = 1:patches,
+                                         species = rep(1:species, each = patches),
+                                         env = env,
+                                         time = i-initialization-burn_in, 
+                                         dispersal = disp,
+                                         germination = germ,
+                                         survival = surv))
+        
+        pb$tick()
+      }
+      
+      # every 20 tsteps?
+      dynamics_subset <- dynamics_out %>% 
+        filter(time %in% seq(0, timesteps, by = 20))
+     
+      dynamics_total <- rbind(dynamics_total, dynamics_subset)
+      
+      saveRDS(dynamics_out, file = paste0("sim_output/sim_disp",disp,"_germ_",germ,"_surv_",surv,".rds"))
+      rm(dynamics_out)
     }
-    env <- env_df$env1[env_df$time == 1]
-  } else {
-    env <- env_df$env1[env_df$time == (i - initialization)]
   }
-  
-  # compute r
-  r <- compute_r_xt(species_traits, env = env, species = species)
-  
-  # compute growth
-  #N_hat <- N*r / (1 + N%*%int_mat)
-  N_hat <- survival(N, species_traits) + growth(N, species_traits, r, int_mat)
-  N_hat[N_hat < 0] <- 0
-  N_hat <- matrix(rpois(n = species*patches, lambda = N_hat), ncol = species, nrow = patches)
-  
-  # determine emigrants
-  E <- matrix(nrow = patches, ncol = species)
-  for(s in 1:species){
-    E[,s] <- rbinom(n = patches, size = N_hat[,s], prob = species_traits$dispersal_rate[s])
-  }
-  dispSP <- colSums(E)
-  
-  I_hat_raw <- disp_array[,,1]%*%E
-  I_hat <- t(t(I_hat_raw)/colSums(I_hat_raw))
-  I_hat[is.nan(I_hat)] <- 1
-  I <- sapply(1:species, function(x) {
-    if(dispSP[x]>0){
-      table(factor(sample(x = patches, size = dispSP[x], replace = TRUE, prob = I_hat[,x]), levels = 1:patches))
-    } else {rep(0, patches)}
-  })
-  
-  
-  I_hat_raw <- matrix(nrow = patches, ncol = species)
-  
-  for(s in 1:species){
-    I_hat_raw[,s] <- disp_array[,,s] %*% E[,s]
-  }
-  
-  # standardize so colsums = 1
-  I_hat <- t(t(I_hat_raw)/colSums(I_hat_raw))
-  I_hat[is.nan(I_hat)] <- 1
-  
-  I <- sapply(1:species, function(x) {
-    if(dispSP[x]>0){
-      table(factor(
-        sample(x = patches, size = dispSP[x], replace = TRUE, prob = I_hat[,x]),
-        levels = 1:patches))
-    } else {rep(0, patches)}
-  })
-  
-  N <- N_hat - E + I
-  
-  N[rbinom(n = species * patches, size = 1, prob = extirp_prob) > 0] <- 0
-  
-  dynamics_out <- rbind(dynamics_out, 
-                        data.table(N = c(N),
-                                   patch = 1:patches,
-                                   species = rep(1:species, each = patches),
-                                   env = env,
-                                   time = i-initialization-burn_in))
-  
-  pb$tick()
 }
 
-dynamics_out %>% 
-  filter(time %in% seq(min(dynamics_out$time), max(dynamics_out$time), by = 10)) %>% 
-  ggplot(aes(x = time, y = N, group = species, color = species)) + 
-  geom_line(alpha = 0.3) + 
-  facet_wrap(~patch) +
-  scale_color_viridis_c() +
-  theme_minimal()
 
-end_sbs <- dynamics_out %>% 
-  filter(time == max(dynamics_out$time)) %>% 
-  select(-env, -time) %>% 
-  spread(key = species, value = N) %>% 
-  select(-patch)
+# analyze diversity
+last_t_out <- dynamics_total %>% 
+  filter(time == max(dynamics_total$time),
+         N > 0) %>% 
+  group_by(dispersal, germination, survival, patch) %>% 
+  arrange(patch)
 
-library(vegan)
-vegan::
-adipart(end_sbs)
+alpha_out <- last_t_out %>% 
+  mutate(N_pa = 1*(N > 0)) %>% 
+  summarize(alpha = sum(N_pa)) %>% 
+  ungroup()
 
+alpha_out <- alpha_out %>% 
+  group_by(dispersal, germination, survival) %>% 
+  summarize(mean_alpha = mean(alpha))
+
+gamma_out <- last_t_out %>% 
+  ungroup() %>% 
+  mutate(N_pa = 1*(N > 0)) %>% 
+  group_by(dispersal, germination, survival) %>% 
+  summarize(gamma = length(unique(species)))
+
+div_part <- alpha_out %>% 
+  left_join(gamma_out) %>% 
+  mutate(beta = gamma / mean_alpha)
+
+div_part %>% 
+  mutate(germination = factor(germination, levels = germ_fracs, labels = paste("Germ. =", round(germ_fracs,2))),
+         survival = factor(survival, levels = surv_fracs, labels = paste("Surv. =", round(surv_fracs,2)))) %>% 
+  gather(mean_alpha, beta, gamma, key = "partition", value = "diversity") %>% 
+  ggplot(aes(x = dispersal, y = diversity, color = partition, fill = partition)) +
+  geom_point() + 
+  geom_line() +
+  facet_grid(rows = vars(germination), cols = vars(survival), drop = FALSE) + 
+  theme_minimal() +
+  scale_x_log10() +
+  theme(legend.position = "top") +
+  ggsave("figures/diversity_partitioning.pdf", width = 8, height = 6)
