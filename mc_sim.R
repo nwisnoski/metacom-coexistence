@@ -29,9 +29,9 @@ comp_scaler = 0.05
 #zeta <- 0 # magnitude of the effect of env. stochasticity
 
 
-timesteps <- 20
-initialization <- 2
-burn_in <- 8
+timesteps <- 2000
+initialization <- 200
+burn_in <- 800
 
 # run sim
 
@@ -39,7 +39,7 @@ landscape <- init_landscape(patches = patches, x_dim = x_dim, y_dim = y_dim)
 env_df <- env_generate(landscape = landscape, env1Scale = 500, timesteps = timesteps+burn_in, plot = TRUE)
 
 
-disp_rates <- 10^seq(-5, 0, length.out = 5)
+disp_rates <- 10^seq(-5, 0, length.out = 50)
 germ_fracs <- seq(.1,1, length.out = 4)
 surv_fracs <- seq(.1,1, length.out = 4)
 
@@ -53,11 +53,10 @@ int_mat <- species_int_mat(species = species, intra = intra,
                            comp_scaler = comp_scaler, plot = TRUE)
 #sim <- 1
 sim_length <- (initialization + burn_in + timesteps) * length(disp_rates)*length(germ_fracs)*length(surv_fracs)
-pb <- progress_bar$new(total = sim_length)
 
 cl <- parallel::makeCluster((parallel::detectCores()-1))
 registerDoParallel()
-
+start_sim <- Sys.time()
 dynamics_list <- foreach(p = 1:nrow(params), .inorder = FALSE,
                           .packages = c("tidyverse", "data.table", "stats")) %dopar% {
   
@@ -153,8 +152,6 @@ dynamics_list <- foreach(p = 1:nrow(params), .inorder = FALSE,
                                      dispersal = disp,
                                      germination = germ,
                                      survival = surv))
-    
-    pb$tick()
   }
   
   # every 20 tsteps?
@@ -169,8 +166,15 @@ dynamics_list <- foreach(p = 1:nrow(params), .inorder = FALSE,
   return(dynamics_subset)
 }
 
-dynamics_total <- rbindlist(dynamics_list)
+end_sims <- Sys.time()
+end_sims - start_sim
 
+tstamp <- str_replace_all(end_sims, " ", "_") %>% 
+  str_replace_all(":", "")
+
+dynamics_total <- rbindlist(dynamics_list)
+write_csv(x = dynamics_total, col_names = TRUE, 
+          path = paste0("sim_output/total_dyn_", tstamp ,".csv"))
 
 # analyze diversity
 last_t_out <- dynamics_total %>% 
@@ -202,14 +206,16 @@ div_part %>%
   mutate(germination = factor(germination, levels = germ_fracs, labels = paste("Germ. =", round(germ_fracs,2))),
          survival = factor(survival, levels = surv_fracs, labels = paste("Surv. =", round(surv_fracs,2)))) %>% 
   gather(mean_alpha, beta, gamma, key = "partition", value = "diversity") %>% 
+  mutate(partition = factor(partition, levels = c("mean_alpha", "beta", "gamma"))) %>% 
   ggplot(aes(x = dispersal, y = diversity, color = partition, fill = partition)) +
-  geom_point() + 
-  geom_line() +
+  geom_point(alpha = 0.5) + 
+  geom_smooth() +
   facet_grid(rows = vars(germination), cols = vars(survival), drop = FALSE) + 
-  theme_minimal() +
+  theme_light() +
   scale_x_log10() +
   theme(legend.position = "top") +
   ggsave("figures/diversity_partitioning.pdf", width = 8, height = 6)
 
 
 stopCluster(cl)
+
