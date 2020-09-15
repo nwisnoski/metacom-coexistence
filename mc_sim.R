@@ -19,8 +19,8 @@ extirp_prob <- 0.001
 
 # int mat params
 intra = 1 
-min_inter = 0 
-max_inter = .5 
+min_inter = 0.5 
+max_inter = 0.5 
 comp_scaler = 0.05
 
 # seed bank params
@@ -160,7 +160,7 @@ dynamics_list <- foreach(p = 1:nrow(params), .inorder = FALSE,
   
   #dynamics_total <- rbind(dynamics_total, dynamics_subset)
   
-  saveRDS(dynamics_out, file = paste0("sim_output/sim_disp",disp,"_germ_",germ,"_surv_",surv,".rds"))
+  saveRDS(dynamics_out, file = paste0("sim_output/sim_disp",disp,"_germ_",germ,"_surv_",surv,"_maxinter_",max_inter,"_mininter_",min_inter,".rds"))
   rm(dynamics_out)
   
   return(dynamics_subset)
@@ -214,7 +214,7 @@ div_part %>%
   theme_light() +
   scale_x_log10() +
   theme(legend.position = "top") +
-  ggsave("figures/diversity_partitioning.pdf", width = 8, height = 6)
+  ggsave("figures/diversity_partitioning_equal.pdf", width = 8, height = 6)
 
 
 stopCluster(cl)
