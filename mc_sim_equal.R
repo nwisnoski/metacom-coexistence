@@ -85,6 +85,7 @@ dynamics_list <- foreach(p = 1:nrow(params), .inorder = FALSE,
   
   
   N <- init_community(initialization = initialization, species = species, patches = patches)
+  N <- N + 1
   D <- N*0
   
   for(i in 1:(initialization + burn_in + timesteps)){
@@ -113,7 +114,7 @@ dynamics_list <- foreach(p = 1:nrow(params), .inorder = FALSE,
     E <- matrix(nrow = patches, ncol = species)
     disp_rates <- species_traits$dispersal_rate
     for(s in 1:species){
-      E[,s] <- rbinom(n = patches, size = (D_hat[,s]+N_hat[,s]), prob = disp_rates[s])
+      E[,s] <- rbinom(n = patches, size = (N_hat[,s]), prob = disp_rates[s])
     }
     
     dispSP <- colSums(E)
@@ -146,33 +147,36 @@ dynamics_list <- foreach(p = 1:nrow(params), .inorder = FALSE,
       } else {rep(0, patches)}
     })
 
-    N <- N_hat #- E + I
-    D <- D_hat - E + I
+    N <- N_hat - E + I
+    D <- D_hat 
     
     N[rbinom(n = species * patches, size = 1, prob = extirp_prob) > 0] <- 0
     
+    dynamics_i <- data.table(N = c(N),
+                             D = c(D),
+                             patch = 1:patches,
+                             species = rep(1:species, each = patches),
+                             env = env,
+                             time = i-initialization-burn_in, 
+                             dispersal = disp,
+                             germination = germ,
+                             survival = surv) %>% 
+      filter(time %in% seq(0, timesteps, by = 20))
+    
     dynamics_out <- rbind(dynamics_out, 
-                          data.table(N = c(N),
-                                     D = c(D),
-                                     patch = 1:patches,
-                                     species = rep(1:species, each = patches),
-                                     env = env,
-                                     time = i-initialization-burn_in, 
-                                     dispersal = disp,
-                                     germination = germ,
-                                     survival = surv))
+                          dynamics_i)
   }
   
   # every 20 tsteps?
-  dynamics_subset <- dynamics_out %>% 
-    filter(time %in% seq(0, timesteps, by = 20))
+  # dynamics_subset <- dynamics_out %>% 
+  #   filter(time %in% seq(0, timesteps, by = 20))
   
   #dynamics_total <- rbind(dynamics_total, dynamics_subset)
   
   #saveRDS(dynamics_out, file = paste0("sim_output/sim_disp",disp,"_germ_",germ,"_surv_",surv,"_maxinter_",max_inter,"_mininter_",min_inter,".rds"))
-  rm(dynamics_out)
   
-  return(dynamics_subset)
+  
+  return(dynamics_out)
 }
 
 end_sims <- Sys.time()
