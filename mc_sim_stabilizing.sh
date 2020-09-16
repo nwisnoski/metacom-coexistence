@@ -3,11 +3,12 @@
 #SBATCH --account=coexistence
 #SBATCH --time=24:00:00
 #SBATCH --nodes=1
+#SBATCH --mem=64GB
 #SBATCH --ntasks-per-node=32
 #SBATCH --cpus-per-task=1
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=nathan.wisnoski@uwyo.edu
-#SBATCH --job-name=metacom_coexistence
+#SBATCH --job-name=metacom_stab
 
 cd /home/nwisnosk/GitHub/metacom-coexistence
 
