@@ -19,8 +19,8 @@ extirp_prob <- 0.001
 
 # int mat params
 intra = 1 
-min_inter = 0.5 
-max_inter = 0.5 
+min_inter = 1 
+max_inter = 1 
 comp_scaler = 0.05
 
 # seed bank params
@@ -29,7 +29,7 @@ comp_scaler = 0.05
 #zeta <- 0 # magnitude of the effect of env. stochasticity
 
 
-timesteps <- 2000
+timesteps <- 500
 initialization <- 200
 burn_in <- 800
 
@@ -113,7 +113,7 @@ dynamics_list <- foreach(p = 1:nrow(params), .inorder = FALSE,
     E <- matrix(nrow = patches, ncol = species)
     disp_rates <- species_traits$dispersal_rate
     for(s in 1:species){
-      E[,s] <- rbinom(n = patches, size = D_hat[,s], prob = disp_rates[s])
+      E[,s] <- rbinom(n = patches, size = (D_hat[,s]+N_hat[,s]), prob = disp_rates[s])
     }
     
     dispSP <- colSums(E)
