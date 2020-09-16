@@ -1,7 +1,7 @@
 #!/bin/bash -l
 
 #SBATCH --account=coexistence
-#SBATCH --time=00:24:00
+#SBATCH --time=24:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=32
 #SBATCH --cpus-per-task=1
