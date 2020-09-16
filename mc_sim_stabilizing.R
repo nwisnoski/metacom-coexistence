@@ -29,7 +29,7 @@ comp_scaler = 0.05
 #zeta <- 0 # magnitude of the effect of env. stochasticity
 
 
-timesteps <- 500
+timesteps <- 2000
 initialization <- 200
 burn_in <- 800
 
@@ -169,7 +169,7 @@ dynamics_list <- foreach(p = 1:nrow(params), .inorder = FALSE,
   
   #dynamics_total <- rbind(dynamics_total, dynamics_subset)
   
-  saveRDS(dynamics_out, file = paste0("sim_output/sim_disp",disp,"_germ_",germ,"_surv_",surv,"_maxinter_",max_inter,"_mininter_",min_inter,".rds"))
+  #saveRDS(dynamics_out, file = paste0("sim_output/sim_disp",disp,"_germ_",germ,"_surv_",surv,"_maxinter_",max_inter,"_mininter_",min_inter,".rds"))
   rm(dynamics_out)
   
   return(dynamics_subset)
@@ -183,7 +183,7 @@ tstamp <- str_replace_all(end_sims, " ", "_") %>%
 
 dynamics_total <- rbindlist(dynamics_list)
 write_csv(x = dynamics_total, col_names = TRUE, 
-          path = paste0("sim_output/total_dyn_", tstamp ,".csv"))
+          path = paste0("sim_output/total_dyn_stabilizing_", tstamp ,".csv"))
 
 # analyze diversity
 last_t_out <- dynamics_total %>% 
@@ -223,7 +223,7 @@ div_part %>%
   theme_light() +
   scale_x_log10() +
   theme(legend.position = "top") +
-  ggsave("figures/aboveground_diversity_partitioning_equal.pdf", width = 8, height = 6)
+  ggsave("figures/aboveground_diversity_partitioning_stabilizing2000.pdf", width = 8, height = 6)
 
 
 last_t_out <- dynamics_total %>% 
@@ -263,7 +263,7 @@ div_part %>%
   theme_light() +
   scale_x_log10() +
   theme(legend.position = "top") +
-  ggsave("figures/belowground_diversity_partitioning_equal.pdf", width = 8, height = 6)
+  ggsave("figures/belowground_diversity_partitioning_stabilizing2000.pdf", width = 8, height = 6)
 
 
 stopCluster(cl)

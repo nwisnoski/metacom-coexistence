@@ -13,4 +13,4 @@ cd /home/nwisnosk/GitHub/metacom-coexistence
 
 module load gcc/7.3.0 r/3.6.1
 
-R CMD BATCH --no-restore --no-save --quiet mc_sim.R mc_sim.log
+R CMD BATCH --no-restore --no-save --quiet mc_sim_equal.R mc_sim_equal.log
