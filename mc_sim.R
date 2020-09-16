@@ -29,9 +29,9 @@ comp_scaler = 0.05
 #zeta <- 0 # magnitude of the effect of env. stochasticity
 
 
-timesteps <- 200
-initialization <- 20
-burn_in <- 80
+timesteps <- 2000
+initialization <- 200
+burn_in <- 800
 
 # run sim
 
@@ -40,7 +40,7 @@ env_df <- env_generate(landscape = landscape, env1Scale = 500,
                        timesteps = timesteps+burn_in, plot = TRUE)
 
 
-disp_rates <- 10^seq(-5, 0, length.out = 5)
+disp_rates <- 10^seq(-5, 0, length.out = 50)
 germ_fracs <- seq(.1,1, length.out = 4)
 surv_fracs <- seq(.1,1, length.out = 4)
 
