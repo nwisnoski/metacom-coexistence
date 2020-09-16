@@ -29,17 +29,18 @@ comp_scaler = 0.05
 #zeta <- 0 # magnitude of the effect of env. stochasticity
 
 
-timesteps <- 2000
-initialization <- 200
-burn_in <- 800
+timesteps <- 200
+initialization <- 20
+burn_in <- 80
 
 # run sim
 
 landscape <- init_landscape(patches = patches, x_dim = x_dim, y_dim = y_dim)
-env_df <- env_generate(landscape = landscape, env1Scale = 500, timesteps = timesteps+burn_in, plot = TRUE)
+env_df <- env_generate(landscape = landscape, env1Scale = 500, 
+                       timesteps = timesteps+burn_in, plot = TRUE)
 
 
-disp_rates <- 10^seq(-5, 0, length.out = 50)
+disp_rates <- 10^seq(-5, 0, length.out = 5)
 germ_fracs <- seq(.1,1, length.out = 4)
 surv_fracs <- seq(.1,1, length.out = 4)
 
@@ -52,7 +53,8 @@ int_mat <- species_int_mat(species = species, intra = intra,
                            min_inter = min_inter, max_inter = max_inter,
                            comp_scaler = comp_scaler, plot = TRUE)
 #sim <- 1
-sim_length <- (initialization + burn_in + timesteps) * length(disp_rates)*length(germ_fracs)*length(surv_fracs)
+sim_length <- (initialization + burn_in + timesteps) * 
+  length(disp_rates) * length(germ_fracs) * length(surv_fracs)
 
 cl <- parallel::makeCluster((parallel::detectCores()-1))
 registerDoParallel()
@@ -83,11 +85,13 @@ dynamics_list <- foreach(p = 1:nrow(params), .inorder = FALSE,
   
   
   N <- init_community(initialization = initialization, species = species, patches = patches)
+  D <- N*0
   
   for(i in 1:(initialization + burn_in + timesteps)){
     if(i <= initialization){
       if(i %in% seq(10, 100, by = 10)){
         N <- N + matrix(rpois(n = species*patches, lambda = 0.5), nrow = patches, ncol = species)
+        D <- D + matrix(rpois(n = species*patches, lambda = 0.5), nrow = patches, ncol = species)
       }
       env <- env_df$env1[env_df$time == 1]
     } else {
@@ -99,27 +103,30 @@ dynamics_list <- foreach(p = 1:nrow(params), .inorder = FALSE,
     
     # compute growth
     #N_hat <- N*r / (1 + N%*%int_mat)
-    N_hat <- survival(N, species_traits) + growth(N, species_traits, r, int_mat)
+    N_hat <- growth(N + D, species_traits, r, int_mat)
+    D_hat <- survival(N + D, species_traits) 
     N_hat[N_hat < 0] <- 0
     N_hat <- matrix(rpois(n = species*patches, lambda = N_hat), ncol = species, nrow = patches)
+    D_hat <- matrix(rpois(n = species*patches, lambda = D_hat), ncol = species, nrow = patches)
 
     # determine emigrants
     E <- matrix(nrow = patches, ncol = species)
     disp_rates <- species_traits$dispersal_rate
     for(s in 1:species){
-      E[,s] <- rbinom(n = patches,size = N_hat[,s], prob = disp_rates[s])
+      E[,s] <- rbinom(n = patches, size = D_hat[,s], prob = disp_rates[s])
     }
     
     dispSP <- colSums(E)
-
-    I_hat_raw <- disp_array[,,1]%*%E
-    I_hat <- t(t(I_hat_raw)/colSums(I_hat_raw))
-    I_hat[is.nan(I_hat)] <- 1
-    I <- sapply(1:species, function(x) {
-      if(dispSP[x]>0){
-        table(factor(sample(x = patches, size = dispSP[x], replace = TRUE, prob = I_hat[,x]), levels = 1:patches))
-      } else {rep(0, patches)}
-    })
+    
+    # determine immigrants to each patch
+    # I_hat_raw <- disp_array[,,1]%*%E
+    # I_hat <- t(t(I_hat_raw)/colSums(I_hat_raw))
+    # I_hat[is.nan(I_hat)] <- 1
+    # I <- sapply(1:species, function(x) {
+    #   if(dispSP[x]>0){
+    #     table(factor(sample(x = patches, size = dispSP[x], replace = TRUE, prob = I_hat[,x]), levels = 1:patches))
+    #   } else {rep(0, patches)}
+    # })
     
     I_hat_raw <- matrix(nrow = patches, ncol = species)
     
@@ -139,12 +146,14 @@ dynamics_list <- foreach(p = 1:nrow(params), .inorder = FALSE,
       } else {rep(0, patches)}
     })
 
-    N <- N_hat - E + I
+    N <- N_hat #- E + I
+    D <- D_hat - E + I
     
     N[rbinom(n = species * patches, size = 1, prob = extirp_prob) > 0] <- 0
     
     dynamics_out <- rbind(dynamics_out, 
                           data.table(N = c(N),
+                                     D = c(D),
                                      patch = 1:patches,
                                      species = rep(1:species, each = patches),
                                      env = env,
@@ -214,7 +223,47 @@ div_part %>%
   theme_light() +
   scale_x_log10() +
   theme(legend.position = "top") +
-  ggsave("figures/diversity_partitioning_equal.pdf", width = 8, height = 6)
+  ggsave("figures/aboveground_diversity_partitioning_equal.pdf", width = 8, height = 6)
+
+
+last_t_out <- dynamics_total %>% 
+  filter(time == max(dynamics_total$time),
+         D > 0) %>% 
+  group_by(dispersal, germination, survival, patch) %>% 
+  arrange(patch)
+
+alpha_out <- last_t_out %>% 
+  mutate(D_pa = 1*(D > 0)) %>% 
+  summarize(alpha = sum(D_pa)) %>% 
+  ungroup()
+
+alpha_out <- alpha_out %>% 
+  group_by(dispersal, germination, survival) %>% 
+  summarize(mean_alpha = mean(alpha))
+
+gamma_out <- last_t_out %>% 
+  ungroup() %>% 
+  mutate(D_pa = 1*(D > 0)) %>% 
+  group_by(dispersal, germination, survival) %>% 
+  summarize(gamma = length(unique(species)))
+
+div_part <- alpha_out %>% 
+  left_join(gamma_out) %>% 
+  mutate(beta = gamma / mean_alpha)
+
+div_part %>% 
+  mutate(germination = factor(germination, levels = germ_fracs, labels = paste("Germ. =", round(germ_fracs,2))),
+         survival = factor(survival, levels = surv_fracs, labels = paste("Surv. =", round(surv_fracs,2)))) %>% 
+  gather(mean_alpha, beta, gamma, key = "partition", value = "diversity") %>% 
+  mutate(partition = factor(partition, levels = c("mean_alpha", "beta", "gamma"))) %>% 
+  ggplot(aes(x = dispersal, y = diversity, color = partition, fill = partition)) +
+  geom_point(alpha = 0.5) + 
+  geom_smooth() +
+  facet_grid(rows = vars(germination), cols = vars(survival), drop = FALSE) + 
+  theme_light() +
+  scale_x_log10() +
+  theme(legend.position = "top") +
+  ggsave("figures/belowground_diversity_partitioning_equal.pdf", width = 8, height = 6)
 
 
 stopCluster(cl)
