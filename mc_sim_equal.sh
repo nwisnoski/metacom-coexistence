@@ -10,7 +10,7 @@
 #SBATCH --mail-user=nathan.wisnoski@uwyo.edu
 #SBATCH --job-name=metacom_equal
 
-cd /home/nwisnosk/GitHub/metacom-coexistence
+cd /project/coexistence/nwisnosk/GitHub/metacom-coexistence
 
 module load gcc/7.3.0 r/3.6.1
 
