@@ -15,7 +15,7 @@ x_dim <- 100
 y_dim <- 100
 patches <- 100
 species <- 20
-extirp_prob <- 0.001
+extirp_prob <- 0.005
 
 # int mat params
 intra = 1 
@@ -227,7 +227,7 @@ div_part %>%
   theme_light() +
   scale_x_log10() +
   theme(legend.position = "top") +
-  ggsave("figures/aboveground_diversity_partitioning_mixed2000.pdf", width = 8, height = 6)
+  ggsave("figures/aboveground_diversity_partitioning_mixed2000_ext005.pdf", width = 8, height = 6)
 
 
 last_t_out <- dynamics_total %>% 
@@ -267,7 +267,7 @@ div_part %>%
   theme_light() +
   scale_x_log10() +
   theme(legend.position = "top") +
-  ggsave("figures/belowground_diversity_partitioning_mixed2000.pdf", width = 8, height = 6)
+  ggsave("figures/belowground_diversity_partitioning_mixed2000_ext005.pdf", width = 8, height = 6)
 
 
 stopCluster(cl)
