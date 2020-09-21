@@ -41,7 +41,7 @@ env_df <- env_generate(landscape = landscape, env1Scale = 500,
 
 
 disp_rates <- 10^seq(-5, 0, length.out = 50)
-germ_fracs <- seq(.1,1, length.out = 4)
+germ_fracs <- seq(.1,1, length.out = 10)
 surv_fracs <- seq(.1,1, length.out = 4)
 
 params <- expand.grid(disp_rates, germ_fracs, surv_fracs)
@@ -189,6 +189,19 @@ dynamics_total <- rbindlist(dynamics_list)
 write_csv(x = dynamics_total, col_names = TRUE, 
           path = paste0("sim_output/total_dyn_mixed_", tstamp ,".csv"))
 
+last_t_out <- dynamics_total %>%
+  filter(time == max(dynamics_total$time),
+         N > 0) %>%
+  group_by(dispersal, germination, survival, patch) %>%
+  arrange(patch)
+write_csv(last_t_out, path = paste0("out/last_t_above_mixed", tstamp,".csv"))
+
+last_t_out <- dynamics_total %>%
+  filter(time == max(dynamics_total$time),
+         D > 0) %>%
+  group_by(dispersal, germination, survival, patch) %>%
+  arrange(patch)
+write_csv(last_t_out, path = paste0("out/last_t_below_mixed_", tstamp,".csv"))
 # analyze diversity
 # last_t_out <- dynamics_total %>% 
 #   filter(time == max(dynamics_total$time),
