@@ -86,6 +86,10 @@ plot_diversity <- function(dynamics_total, file){
   
 }
 
+disp_rates <- 10^seq(-5, 0, length.out = 50)
+germ_fracs <- seq(.1,1, length.out = 4)
+surv_fracs <- seq(.1,1, length.out = 4)
+
 
 files <- list.files("sim_output/")
 for(f in files){
