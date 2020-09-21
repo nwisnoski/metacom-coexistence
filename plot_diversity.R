@@ -10,6 +10,7 @@ plot_diversity <- function(dynamics_total, file){
            N > 0) %>%
     group_by(dispersal, germination, survival, patch) %>%
     arrange(patch)
+  write_csv(last_t_out, path = paste0("out/last_t_above_", file))
   
   alpha_out <- last_t_out %>%
     mutate(N_pa = 1*(N > 0)) %>%
@@ -41,6 +42,8 @@ plot_diversity <- function(dynamics_total, file){
     facet_grid(rows = vars(germination), cols = vars(survival), drop = FALSE) +
     theme_light() +
     scale_x_log10() +
+    scale_y_log10() + 
+    labs(y = "Diversity") +
     theme(legend.position = "top") +
     ggsave(paste0("figures/diversity_partitioning_",str_remove(file,".csv"),"_above.pdf"), width = 8, height = 6)
   
@@ -50,6 +53,7 @@ plot_diversity <- function(dynamics_total, file){
            D > 0) %>%
     group_by(dispersal, germination, survival, patch) %>%
     arrange(patch)
+  write_csv(last_t_out, path = paste0("out/last_t_below_", file))
   
   alpha_out <- last_t_out %>%
     mutate(D_pa = 1*(D > 0)) %>%
@@ -81,6 +85,8 @@ plot_diversity <- function(dynamics_total, file){
     facet_grid(rows = vars(germination), cols = vars(survival), drop = FALSE) +
     theme_light() +
     scale_x_log10() +
+    scale_y_log10() +
+    labs(y = "Diversity") +
     theme(legend.position = "top") +
     ggsave(paste0("figures/diversity_partitioning_",str_remove(file,".csv"),"_below.pdf"), width = 8, height = 6)
   
