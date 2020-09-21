@@ -89,7 +89,7 @@ plot_diversity <- function(dynamics_total, file){
 
 files <- list.files("sim_output/")
 for(f in files){
-  dat <- data.table::fread(f)
+  dat <- data.table::fread(paste0("sim_output/",f))
   plot_diversity(dat, file = f)
 }
 
