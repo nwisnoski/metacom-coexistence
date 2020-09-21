@@ -42,7 +42,7 @@ plot_diversity <- function(dynamics_total, file){
     theme_light() +
     scale_x_log10() +
     theme(legend.position = "top") +
-    ggsave(paste0("figures/diversity_partitioning_",str_remove(file,".pdf"),"_above.pdf"), width = 8, height = 6)
+    ggsave(paste0("figures/diversity_partitioning_",str_remove(file,".csv"),"_above.pdf"), width = 8, height = 6)
   
   # plot seedbank
   last_t_out <- dynamics_total %>%
