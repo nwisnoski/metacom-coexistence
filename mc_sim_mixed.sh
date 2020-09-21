@@ -14,4 +14,4 @@ cd /project/coexistence/nwisnosk/GitHub/metacom-coexistence
 
 module load gcc/7.3.0 r/3.6.1
 
-R CMD BATCH --no-restore --no-save --quiet mc_sim_mixed.R mc_sim_mixed.log
+R CMD BATCH --no-restore --no-save  mc_sim_mixed.R mc_sim_mixed.log
