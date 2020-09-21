@@ -161,7 +161,7 @@ dynamics_list <- foreach(p = 1:nrow(params), .inorder = FALSE,
                              dispersal = disp,
                              germination = germ,
                              survival = surv) %>% 
-      filter(time %in% seq(0, timesteps, by = 20))
+      filter(time %in% seq(1000, timesteps, by = 20))
     
     dynamics_out <- rbind(dynamics_out, 
                           dynamics_i)
