@@ -93,9 +93,9 @@ surv_fracs <- seq(.1,1, length.out = 4)
 
 files <- list.files("sim_output/")
 for(f in files){
-  dat <- data.table::fread(paste0("sim_output/",f))
-  plot_diversity(dat, file = f)
+  if(!(file.exists(paste0("figures/diversity_partitioning_",str_remove(f,".csv"),"_above.pdf")) & 
+       file.exists(paste0("figures/diversity_partitioning_",str_remove(f,".csv"),"_below.pdf")))){
+    dat <- data.table::fread(paste0("sim_output/",f))
+    plot_diversity(dat, file = f)
+  }
 }
-
-
-

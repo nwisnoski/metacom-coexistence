@@ -15,7 +15,7 @@ x_dim <- 100
 y_dim <- 100
 patches <- 100
 species <- 40
-extirp_prob <- 0.001
+extirp_prob <- 0.000
 
 # int mat params
 intra = 1 
