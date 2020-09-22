@@ -5,7 +5,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=32
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=64GB
+#SBATCH --mem=96GB
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=nathan.wisnoski@uwyo.edu
 #SBATCH --job-name=metacom_mixed
