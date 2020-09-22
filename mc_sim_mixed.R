@@ -189,19 +189,20 @@ dynamics_total <- rbindlist(dynamics_list)
 write_csv(x = dynamics_total, col_names = TRUE, 
           path = paste0("sim_output/total_dyn_mixed_", tstamp ,".csv"))
 
-last_t_out <- dynamics_total %>%
-  filter(time == max(dynamics_total$time),
-         N > 0) %>%
-  group_by(dispersal, germination, survival, patch) %>%
-  arrange(patch)
-write_csv(last_t_out, path = paste0("out/last_t_above_mixed", tstamp,".csv"))
+# last_t_out <- dynamics_total %>%
+#   filter(time == max(dynamics_total$time),
+#          N > 0) %>%
+#   group_by(dispersal, germination, survival, patch) %>%
+#   arrange(patch)
+# write_csv(last_t_out, path = paste0("out/last_t_above_mixed_", tstamp,".csv"))
+# 
+# last_t_out <- dynamics_total %>%
+#   filter(time == max(dynamics_total$time),
+#          D > 0) %>%
+#   group_by(dispersal, germination, survival, patch) %>%
+#   arrange(patch)
+# write_csv(last_t_out, path = paste0("out/last_t_below_mixed_", tstamp,".csv"))
 
-last_t_out <- dynamics_total %>%
-  filter(time == max(dynamics_total$time),
-         D > 0) %>%
-  group_by(dispersal, germination, survival, patch) %>%
-  arrange(patch)
-write_csv(last_t_out, path = paste0("out/last_t_below_mixed_", tstamp,".csv"))
 # analyze diversity
 # last_t_out <- dynamics_total %>% 
 #   filter(time == max(dynamics_total$time),
