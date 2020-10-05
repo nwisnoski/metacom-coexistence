@@ -10,7 +10,7 @@ source("metacom_functions.R")
 
 
 # define parameters
-
+nreps <- 3
 x_dim <- 100
 y_dim <- 100
 patches <- 100
@@ -34,7 +34,7 @@ initialization <- 200
 burn_in <- 800
 
 # run sim
-
+set.seed(82072)
 landscape <- init_landscape(patches = patches, x_dim = x_dim, y_dim = y_dim)
 env_df <- env_generate(landscape = landscape, env1Scale = 500, 
                        timesteps = timesteps+burn_in, plot = TRUE)
@@ -42,10 +42,13 @@ env_df <- env_generate(landscape = landscape, env1Scale = 500,
 
 disp_rates <- 10^seq(-5, 0, length.out = 50)
 germ_fracs <- seq(.1,1, length.out = 10)
-surv_fracs <- seq(.1,1, length.out = 4)
+surv_fracs <- c(.1, .5, 1)
 
-params <- expand.grid(disp_rates, germ_fracs, surv_fracs)
-
+params_i <- expand.grid(disp_rates, germ_fracs, surv_fracs)
+params <- data.frame()
+for(i in 1:nreps){
+  params <- bind_rows(params_i, params)
+}
 #dynamics_total <- data.table()
 
 # use the same interaction matrix
@@ -161,7 +164,7 @@ dynamics_list <- foreach(p = 1:nrow(params), .inorder = FALSE,
                              dispersal = disp,
                              germination = germ,
                              survival = surv) %>% 
-      filter(time %in% seq(1000, timesteps, by = 20))
+      filter(time %in% seq(1800, timesteps, by = 20))
     
     dynamics_out <- rbind(dynamics_out, 
                           dynamics_i)
