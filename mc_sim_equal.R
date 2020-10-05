@@ -44,11 +44,8 @@ disp_rates <- 10^seq(-5, 0, length.out = 50)
 germ_fracs <- seq(.1,1, length.out = 10)
 surv_fracs <- c(.1, .5, 1)
 
-params_i <- expand.grid(disp_rates, germ_fracs, surv_fracs)
-params <- data.frame()
-for(i in 1:nreps){
-  params <- bind_rows(params_i, params)
-}
+params <- expand.grid(disp_rates, germ_fracs, surv_fracs)
+
 #dynamics_total <- data.table()
 
 # use the same interaction matrix
