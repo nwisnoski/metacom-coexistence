@@ -193,7 +193,8 @@ for(x in conditions){
     
     write_csv(x = dynamics_total, col_names = TRUE, 
               path = paste0("sim_output/total_dyn_",x,"_", tstamp ,".csv"))
-    
+    rm(dynamics_total)
+    gc()
   }
 }
 
