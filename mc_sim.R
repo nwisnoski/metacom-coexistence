@@ -168,7 +168,7 @@ for(x in conditions){
                                                           survival = surv,
                                                           rep = i,
                                                           comp = x) %>% 
-                                   filter(time %in% seq(1900, timesteps, by = 20))
+                                   filter(time %in% seq(2000, timesteps, by = 20))
                                  
                                  dynamics_out <- rbind(dynamics_out, 
                                                        dynamics_i)
