@@ -53,7 +53,7 @@ for(x in conditions){
   }
   
   # for each replicate, rerun parameter sweep
-  for(i in 1:nreps){
+  for(rep in 1:nreps){
     
     # make new landscape, environmental data, and draw new competition coefficients
     landscape <- init_landscape(patches = patches, x_dim = x_dim, y_dim = y_dim)
@@ -166,7 +166,7 @@ for(x in conditions){
                                                           dispersal = disp,
                                                           germination = germ,
                                                           survival = surv,
-                                                          rep = i,
+                                                          rep = rep,
                                                           comp = x) %>% 
                                    filter(time %in% seq(2000, timesteps, by = 20))
                                  
