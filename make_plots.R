@@ -1,5 +1,5 @@
 library("tidyverse")
-library("gganimate")
+#library("gganimate")
 
 theme_set(theme_light() + 
             theme(strip.text = element_text(color = "black"),
