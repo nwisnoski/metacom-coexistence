@@ -6,19 +6,19 @@ theme_set(theme_light() +
                   strip.background = element_rect(fill = "gray90")))
 
 # competition scenarios
-mixed <- "out/last_t_above_total_dyn_mixed_2020-10-05_105308.csv"
-equal <- "out/last_t_above_total_dyn_equal_2020-10-05_105325.csv"
-stable <- "out/last_t_above_total_dyn_stabilizing_2020-10-05_105659.csv"
+#mixed <- "out/last_t_above_total_dyn_mixed_2020-10-05_105308.csv"
+equal <- "out/final_equal_above.csv"
+stable <- "out/final_stable_above.csv"
 
 # below
 #mixed <- "out/last_t_below_total_dyn_mixed_2020-09-22_123927.csv"
 #equal <- "out/last_t_below_total_dyn_equal_2020-09-22_123617.csv"
 #stable <- "out/last_t_below_total_dyn_stabilizing_2020-09-22_124640.csv"
 
-file_list <- c(mixed, equal, stable)
+file_list <- c(equal, stable)
 make_plots <- function(competition){
   condition_type <- str_remove(competition, ".csv") %>% 
-    str_remove("out/last_t_above_total_dyn_") %>% 
+    str_remove("out/final_") %>% 
     str_split("_") %>% .[[1]] %>% .[1]
   
   last_t_out <- read_csv(competition)
