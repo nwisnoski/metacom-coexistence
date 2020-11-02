@@ -16,6 +16,7 @@ stable <- "out/final_stable_above.csv"
 #stable <- "out/last_t_below_total_dyn_stabilizing_2020-09-22_124640.csv"
 
 file_list <- c(equal, stable)
+competition = file_list[1]
 make_plots <- function(competition){
   condition_type <- str_remove(competition, ".csv") %>% 
     str_remove("out/final_") %>% 
@@ -28,19 +29,19 @@ make_plots <- function(competition){
   surv_fracs <- sort(unique(last_t_out$survival))
   
   alpha_out <- last_t_out %>%
-    group_by(dispersal, germination, survival, patch) %>% 
+    group_by(dispersal, germination, survival, patch, rep) %>% 
     mutate(N_pa = 1*(N > 0)) %>%
     summarize(alpha = sum(N_pa)) %>%
     ungroup()
   
   alpha_out <- alpha_out %>%
-    group_by(dispersal, germination, survival) %>%
+    group_by(dispersal, germination, survival, rep) %>%
     summarize(mean_alpha = mean(alpha))
   
   gamma_out <- last_t_out %>%
     ungroup() %>%
     mutate(N_pa = 1*(N > 0)) %>%
-    group_by(dispersal, germination, survival) %>%
+    group_by(dispersal, germination, survival, rep) %>%
     summarize(gamma = length(unique(species)))
   
   div_part <- alpha_out %>%
@@ -54,7 +55,7 @@ make_plots <- function(competition){
     mutate(partition = factor(partition, levels = c("mean_alpha", "beta", "gamma"),
                               labels = c("mean alpha", "beta", "gamma"))) %>%
     ggplot(aes(x = dispersal, y = diversity, color = partition, fill = partition)) +
-    geom_point(alpha = 0.5) +
+    geom_point(alpha = 0.05) +
     geom_smooth() +
     facet_grid(rows = vars(germination), cols = vars(survival), drop = FALSE) +
     scale_x_log10() +
@@ -70,7 +71,7 @@ make_plots <- function(competition){
     mutate(partition = factor(partition, levels = c("mean_alpha", "beta", "gamma"),
                               labels = c("mean alpha", "beta", "gamma"))) %>%
     ggplot(aes(x = dispersal, y = diversity, color = germination, fill = germination, group = germination)) +
-    geom_point(alpha = 0.25) +
+    geom_point(alpha = 0.15) +
     geom_smooth(alpha = 0.25) +
     facet_grid(rows = vars(partition), cols = vars(survival), drop = FALSE, scales = "free_y") +
     scale_x_log10() +
@@ -88,7 +89,7 @@ make_plots <- function(competition){
     mutate(partition = factor(partition, levels = c("mean_alpha", "beta", "gamma"),
                               labels = c("mean alpha", "beta", "gamma"))) %>%
     ggplot(aes(x = dispersal, y = diversity, color = survival, fill = survival, group = survival)) +
-    geom_point(alpha = 0.25) +
+    geom_point(alpha = 0.15) +
     geom_smooth(alpha = 0.25) +
     facet_grid(rows = vars(partition), cols = vars(germination), drop = TRUE, scales = "free_y") +
     scale_x_log10() +
@@ -114,19 +115,19 @@ germ_fracs <- sort(unique(last_t_out$germination))
 surv_fracs <- sort(unique(last_t_out$survival))
 
 alpha_out <- last_t_out %>%
-  group_by(dispersal, germination, survival, patch) %>% 
+  group_by(dispersal, germination, survival, patch, rep) %>% 
   mutate(N_pa = 1*(N > 0)) %>%
   summarize(alpha = sum(N_pa)) %>%
   ungroup()
 
 alpha_out <- alpha_out %>%
-  group_by(dispersal, germination, survival) %>%
+  group_by(dispersal, germination, survival, rep) %>%
   summarize(mean_alpha = mean(alpha))
 
 gamma_out <- last_t_out %>%
   ungroup() %>%
   mutate(N_pa = 1*(N > 0)) %>%
-  group_by(dispersal, germination, survival) %>%
+  group_by(dispersal, germination, survival, rep) %>%
   summarize(gamma = length(unique(species)))
 
 div_part <- alpha_out %>%
@@ -140,7 +141,7 @@ div_part %>%
   gather(mean_alpha, beta, gamma, key = "partition", value = "diversity") %>%
   mutate(partition = factor(partition, levels = c("mean_alpha", "beta", "gamma"))) %>%
   ggplot(aes(x = dispersal, y = diversity, color = partition, fill = partition)) +
-  geom_point(alpha = 0.5) +
+  geom_point(alpha = 0.15) +
   geom_smooth() +
   #facet_grid(rows = vars(germination), cols = vars(survival), drop = FALSE) +
   scale_x_log10() +
@@ -169,20 +170,3 @@ germ_comp %>%
   labs(y = "Diversity", x = "Dispersal") +
   theme(legend.position = "top") +
   ggsave("figures/single_diversity_partitioning_equal.pdf", height = 6, width = 4)
-
-div_part %>%
-  filter(germination <= 0.5) %>% 
-  mutate(germination = factor(germination, levels = germ_fracs, labels = paste("Germ. =", round(germ_fracs,2)))) %>%
-  gather(mean_alpha, beta, gamma, key = "partition", value = "diversity") %>%
-  mutate(partition = factor(partition, levels = c("mean_alpha", "beta", "gamma"))) %>%
-  ggplot(aes(x = dispersal, y = diversity, color = survival, fill = survival, group = survival)) +
-  geom_point(alpha = 0.25) +
-  geom_smooth(alpha = 0.25) +
-  facet_grid(rows = vars(partition), cols = vars(germination), drop = TRUE, scales = "free_y") +
-  scale_x_log10() +
-  #scale_y_log10() +
-  scale_color_viridis_c("Survival", option = "D", end = .9) +
-  scale_fill_viridis_c("Survival", option = "D", end = .9) +
-  labs(y = "Diversity", x = "Dispersal") +
-  theme(legend.position = "right") +
-  ggsave(paste0("figures/survival_",condition_type,".pdf"), width = 12, height = 8)
