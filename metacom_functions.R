@@ -122,7 +122,8 @@ survival <- function(N, species_traits){
   
   N_surv <- N * 0
   for(i in 1:ncol(N)){
-    N_surv[,i] <- N[,i] * s_prop[i]
+    #N_surv[,i] <- N[,i] * s_prop[i]
+    N_surv[,i] <- rbinom(n = nrow(N), size = N[,i], prob = s_prop[i])
   }
   return(N_surv)
 }
@@ -132,7 +133,10 @@ growth <- function(N, species_traits, r, int_mat){
   germ <- matrix(species_traits$germ, nrow = 1)
   
   for(i in 1:species){
-    N_growth[,i] <- germ[i]*N[,i]*r[,i]
+    # compute number of seeds that germinate
+    N_germ <- rbinom(n = nrow(N), size = N[,i], prob = germ[i])
+    # of germinated seeds, grow
+    N_growth[,i] <- N_germ * r[,i]
   }
   N_next <- N_growth / (1 + N%*%int_mat)
   return(N_next)
