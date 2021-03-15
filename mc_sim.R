@@ -109,13 +109,20 @@ for(x in conditions){
                                  
                                  # compute growth
                                  #N_hat <- N*r / (1 + N%*%int_mat)
-                                 N_hat <- growth(N + D, species_traits, r, int_mat)
-                                 D_hat <- survival(N + D, species_traits) 
-                                 N_hat[N_hat < 0] <- 0
-                                 N_hat <- matrix(rpois(n = species*patches, lambda = N_hat), ncol = species, nrow = patches)
-                                 D_hat <- matrix(rpois(n = species*patches, lambda = D_hat), ncol = species, nrow = patches)
                                  
-                                 # determine emigrants
+                                 # who germinates? Binomial distributed
+                                 N_germ <- germination(N + D, species_traits)
+                                 
+                                 # of germinating fraction, grow via BH model
+                                 N_hat <- growth(N_germ, species_traits, r, int_mat)
+                                 
+                                 # of those that didn't germinate, compute seed bank survival via binomial draw
+                                 D_hat <- survival((N + D - N_germ), species_traits) 
+                                 
+                                 N_hat[N_hat < 0] <- 0
+                                 N_hat <- matrix(rpois(n = species*patches, lambda = N_hat), ncol = species, nrow = patches) # poisson draw on aboveground
+                                 
+                                 # determine emigrants from aboveground community
                                  E <- matrix(nrow = patches, ncol = species)
                                  disp_rates <- species_traits$dispersal_rate
                                  for(s in 1:species){
