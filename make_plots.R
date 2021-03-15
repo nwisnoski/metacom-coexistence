@@ -125,6 +125,20 @@ make_plots <- function(competition){
     theme(legend.position = "top") +
     ggsave(paste0("figures/single_diversity_partitioning_",condition_type,".pdf"), height = 6, width = 4)
   
+  germ_comp %>% 
+    ggplot(aes(x = dispersal, y = diversity, color = germination, fill = germination)) +
+    geom_point(data = filter(germ_comp, germination == "Germ. = 1"), alpha = 0.05) +
+    #geom_line(mapping = aes(group = paste(germination, rep)), stat = "smooth", alpha = 0.2, se = F) +
+    geom_smooth(data = filter(germ_comp, germination == "Germ. = 1"), alpha = 0.25) +
+    facet_grid(rows = vars(partition), drop = T, scales = "free_y") +
+    scale_x_log10() +
+    #scale_y_log10() +
+    scale_color_viridis_d("Germination", option = "D", end = .8, begin = .8) +
+    scale_fill_viridis_d("Germination", option = "D", end = .8, begin = .8) +
+    labs(y = "Diversity", x = "Dispersal") +
+    theme(legend.position = "top") +
+    ggsave(paste0("figures/single_diversity_partitioning_nodorm_",condition_type,".pdf"), height = 6, width = 4)
+  
 }
 
 ### Loop through files
