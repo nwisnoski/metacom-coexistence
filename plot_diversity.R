@@ -101,7 +101,7 @@ files <- list.files("sim_output/stochastic")
 for(f in files){
   if(!(file.exists(paste0("figures/diversity_partitioning_",str_remove(f,".csv"),"_above.pdf")) & 
        file.exists(paste0("figures/diversity_partitioning_",str_remove(f,".csv"),"_below.pdf")))){
-    dat <- data.table::fread(paste0("sim_output/",f))
+    dat <- data.table::fread(paste0("sim_output/stochastic",f))
     plot_diversity(dat, file = f)
   }
 }
