@@ -29,7 +29,7 @@ vignettes/*.pdf
 .DS_Store
 README.html
 
-sim_output/
+
 *.out
 *.log
 *.sh.o*
