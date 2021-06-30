@@ -1,5 +1,4 @@
 library("tidyverse")
-#library("gganimate")
 
 theme_set(theme_light() + 
             theme(strip.text = element_text(color = "black", size = 14),
@@ -12,8 +11,8 @@ theme_set(theme_light() +
 
 # competition scenarios
 #mixed <- "out/last_t_above_total_dyn_mixed_2020-10-05_105308.csv"
-equal <- "out/stochastic/final_equal_above.csv"
-stable <- "out/stochastic/final_stable_above.csv"
+equal <- "sim_output/final_equal_above.csv"
+stable <- "sim_output/final_stable_above.csv"
 
 # below
 #mixed <- "out/last_t_below_total_dyn_mixed_2020-09-22_123927.csv"
@@ -24,7 +23,7 @@ file_list <- c(equal, stable)
 competition = file_list[1]
 make_plots <- function(competition){
   condition_type <- str_remove(competition, ".csv") %>% 
-    str_remove("out/stochastic/final_") %>% 
+    str_remove("sim_output/final_") %>% 
     str_split("_") %>% .[[1]] %>% .[1]
   
   last_t_out <- read_csv(competition)
