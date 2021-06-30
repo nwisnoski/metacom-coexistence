@@ -1,8 +1,13 @@
 # metacom-coexistence
+Examining coexistence in metacommunities with dormancy.
 
-This repository contains code related to the study of diversity and coexistence in metacommunities with seed banks. 
+This repository contains the code to reproduce the manuscript: 
 
-Code for different manuscripts is housed in different subdirectories. This README will be updated to describe the manuscripts associated with each subfolder. 
+Wisnoski NI, and LG Shoemaker. "Seed banks alter metacommunity diversity: the interactive effects of competition, germination, and survival"
 
-`ms1_diversity` - Code for Wisnoski NI and Shoemaker LG "Seed banks affect metacommunity diversity" bioRxiv
+To reproduce the analysis and figures from the manuscript, run the following:
+
+1. `mc_sim.R` = this file includes the main simulation across parameter space in the paper.
+2. `extract_sim_output.sh` = commands included here parse the simulation output and split it into files for above and belowground data for equal and stable interactions. Paths and filenames here may be user-specific and likely need tweeking for your system.
+3.  `make_plots.R` = this file makes figures from the output of the simulations
 
