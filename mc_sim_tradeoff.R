@@ -221,22 +221,16 @@ for(x in conditions){
       dynamics_total <- rbind(dynamics_total, 
                               dynamics_out)
     }
-    # every 20 tsteps?
-    # dynamics_subset <- dynamics_out %>% 
-    #   filter(time %in% seq(0, timesteps, by = 20))
     
-    #dynamics_total <- rbind(dynamics_total, dynamics_subset)
-    
-    #saveRDS(dynamics_out, file = paste0("sim_output/sim_disp",disp,"_germ_",germ,"_surv_",surv,"_maxinter_",max_inter,"_mininter_",min_inter,".rds"))
-    
-    end_sims <- Sys.time()
-    tstamp <- str_replace_all(end_sims, " ", "_") %>% 
-      str_replace_all(":", "")
-    
-    write_csv(x = dynamics_total, col_names = TRUE, 
-              path = paste0("sim_output/total_dyn_",x,"_", tstamp ,".csv"))
-    rm(dynamics_total)
-    gc()
   }
 }
+   
+end_sims <- Sys.time()
+tstamp <- str_replace_all(end_sims, " ", "_") %>% 
+  str_replace_all(":", "")
+
+write_csv(x = dynamics_total, col_names = TRUE, 
+          path = paste0("sim_output/total_dyn_",x,"_", tstamp ,".csv"))
+rm(dynamics_total)
+gc()
 
