@@ -18,7 +18,7 @@ species <- 40
 extirp_prob <- 0.000
 
 conditions <- c("equal", "stable")
-tradeoff_strength <- c("strong", "weak")
+tradeoff_strength <- c("strong", "weak", "none")
 
 # define trade-off strength with seed size
 disp_tradeoff <- -0.5
@@ -66,6 +66,11 @@ for(x in conditions){
     }
     if(y == "weak"){
       tradeoff_noise = 2
+    }
+    if(y == "none"){
+      disp_tradeoff = 0
+      germ_tradeoff = 0
+      surv_tradeoff = 0
     }
     
     
@@ -229,7 +234,7 @@ tstamp <- str_replace_all(end_sims, " ", "_") %>%
   str_replace_all(":", "")
 
 write_csv(x = dynamics_total, col_names = TRUE, 
-          path = paste0("sim_output/total_dyn_",x,"_", tstamp ,".csv"))
+          path = paste0("sim_output/final_tradeoff_",tstamp,".csv"))
 rm(dynamics_total)
 gc()
 
