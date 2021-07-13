@@ -10,7 +10,7 @@ source("metacom_functions.R")
 
 
 # define parameters
-nreps <- 10
+nreps <- 20
 x_dim <- 100
 y_dim <- 100
 patches <- 100
@@ -98,7 +98,7 @@ for(x in conditions){
       
       # then, based on known trade-offs, we generate the corresponding trait values
       disp <- seed_mass * disp_tradeoff + rnorm(species, sd = tradeoff_noise)
-      disp <- (disp - min(disp)) / (max(disp) - min(disp)) *5/1000 # multipy by 5/1000 to range from 0 to 0.005
+      disp <- (disp - min(disp)) / (max(disp) - min(disp)) *1/1000 # multiply by 1/1000 to range from 0 to 0.001
       plot(seed_mass, disp)
       
       germ <- seed_mass * germ_tradeoff + rnorm(species, sd = tradeoff_noise)
