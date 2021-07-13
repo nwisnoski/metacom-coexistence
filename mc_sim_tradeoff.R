@@ -98,7 +98,7 @@ for(x in conditions){
       
       # then, based on known trade-offs, we generate the corresponding trait values
       disp <- seed_mass * disp_tradeoff + rnorm(species, sd = tradeoff_noise)
-      disp <- (disp - min(disp)) / (max(disp) - min(disp)) /2 # divide by 2 to range from 0 to 0.5
+      disp <- (disp - min(disp)) / (max(disp) - min(disp)) *5/1000 # multipy by 5/1000 to range from 0 to 0.005
       plot(seed_mass, disp)
       
       germ <- seed_mass * germ_tradeoff + rnorm(species, sd = tradeoff_noise)
