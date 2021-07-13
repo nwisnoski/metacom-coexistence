@@ -10,7 +10,7 @@ theme_set(theme_light() +
                   legend.title = element_text(size = 14),
                   legend.text = element_text(size = 12)))
 
-sim_dat <- read_csv("sim_output/final_tradeoff_2021-07-12_164900.csv")
+sim_dat <- read_csv("sim_output/final_tradeoff.csv")
 
 
 alpha_out <- sim_dat %>% 
@@ -29,7 +29,8 @@ gamma_out <- sim_dat %>%
 
 div_part <- alpha_out %>% 
   left_join(gamma_out) %>% 
-  mutate(beta = gamma / mean_alpha)
+  mutate(beta = gamma / mean_alpha) %>% 
+  mutate(tradeoff_strength = factor(tradeoff_strength, levels = c("none", "weak", "strong")))
 
 div_part <- div_part %>% 
   rename(alpha = mean_alpha)
