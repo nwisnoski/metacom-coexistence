@@ -10,7 +10,7 @@ source("metacom_functions.R")
 
 
 # define parameters
-nreps <- 20
+nreps <- 50
 x_dim <- 100
 y_dim <- 100
 patches <- 100
