@@ -10,7 +10,7 @@ theme_set(theme_light() +
                   legend.title = element_text(size = 14),
                   legend.text = element_text(size = 12)))
 
-sim_dat <- read_csv("sim_output/final_tradeoff_2021-07-13_143724.csv")
+sim_dat <- read_csv("sim_output/final_tradeoff_2021-07-13_200435.csv")
 
 
 alpha_out <- sim_dat %>% 
@@ -45,8 +45,8 @@ div_part_meansd <- div_part %>%
 equal_plot <- div_part_meansd %>% 
   #pivot_longer(cols = c("alpha", "beta", "gamma"), names_to = "partition", values_to = "diversity") %>% 
   filter(comp == "equal") %>% 
-  ggplot(aes(x = tradeoff_strength, color = partition)) + 
-  geom_jitter(aes(y = diversity), alpha = 0.5) +
+  ggplot(aes(x = tradeoff_strength, y = diversity, color = partition)) + 
+  geom_jitter(alpha = 0.5, width = 0.2) +
   geom_point(aes(y = mean_diversity), size = 3) +
   geom_errorbar(aes(ymax = mean_diversity + sd_diversity, 
                     ymin = mean_diversity - sd_diversity), 
@@ -60,7 +60,7 @@ stable_plot <- div_part_meansd %>%
   #pivot_longer(cols = c("alpha", "beta", "gamma"), names_to = "partition", values_to = "diversity") %>% 
   filter(comp == "stable") %>% 
   ggplot(aes(x = tradeoff_strength, y = diversity, color = partition)) + 
-  geom_jitter(alpha = 0.5) +
+  geom_jitter(alpha = 0.5, width = 0.2) +
   geom_point(aes(y = mean_diversity), size = 3) +
   geom_errorbar(aes(ymax = mean_diversity + sd_diversity, 
                     ymin = mean_diversity - sd_diversity), 
@@ -71,4 +71,4 @@ stable_plot <- div_part_meansd %>%
   labs(x = "Trade-off strength", y = "Diversity")
 
 equal_plot + stable_plot + 
-  ggsave("figures/diversity_tradeoffs.pdf", width = 4*2, height = 3*3)
+  ggsave("figures/diversity_tradeoffs.pdf", width = 4.5*2, height = 3*3)
