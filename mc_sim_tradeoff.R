@@ -92,9 +92,12 @@ for(x in conditions){
       # generate tradeoffs
       # based on grasslands/herbs from fig 3 of Moles et al. 2007 GEB
       # I estimated the sd on log scale, and convert back down to arithmetic scale
-      seed_mass = exp(rnorm(n = species, mean = 0, sd = 3.45/2))
-      hist(seed_mass,breaks = 300)
+      #seed_mass = exp(rnorm(n = species, mean = 0, sd = 3.45/2))
+      #hist(seed_mass,breaks = 300)
       
+      # retrying with a normal distribution, too much variance in lognormal
+      seed_mass <- rnorm(n = species, mean = 0, sd = 1)
+      hist(seed_mass, breaks = 30)
       
       # then, based on known trade-offs, we generate the corresponding trait values
       disp <- seed_mass * disp_tradeoff + rnorm(species, sd = tradeoff_noise)
