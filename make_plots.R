@@ -72,7 +72,7 @@ make_plots <- function(competition){
     scale_x_log10() +
     scale_y_log10() +
     labs(y = "Diversity", x = "Dispersal") +
-    theme(legend.position = "top") +
+    theme(legend.position = "top", axis.text = element_text(size = 8)) +
     ggsave(paste0("figures/diversity_partitioning_", position, "_", condition_type,".pdf"), width = 8, height = 12)
   
   div_part %>%
@@ -157,3 +157,54 @@ for(competition in file_list){
 }
 
 
+
+# look at population abundances
+above_stable <- read_csv(stable_above)
+above_stable %>% 
+  group_by(dispersal, species) %>% 
+  summarize(mean_N = mean(N), max_N = max(N), min_N = min(N), sd_N = sd(N)) %>% 
+  ggplot(aes(y = mean_N, x = dispersal)) + 
+  geom_point(alpha = 0.5) +
+  geom_line() +
+  geom_ribbon(aes(ymax = max_N, ymin = min_N), alpha = 0.2) + 
+  scale_x_log10() +
+  facet_wrap(~species) +
+  theme(axis.text = element_text(size = 8)) + 
+  labs(x = "Dispersal rate", y = "Mean abundance\n(+/- max/min)", title = "Aboveground, stable competition") + 
+  ggsave("figures/mean_abund_species_stable.pdf", width = 10, height = 3/4*10)
+
+above_equal <- read_csv(equal_above)
+above_equal %>% 
+  group_by(dispersal, species) %>% 
+  summarize(mean_N = mean(N), max_N = max(N), min_N = min(N), sd_N = sd(N)) %>% 
+  ggplot(aes(y = mean_N, x = dispersal)) + 
+  geom_point(alpha = 0.5) +
+  geom_line() +
+  geom_ribbon(aes(ymax = max_N, ymin = min_N), alpha = 0.2) + 
+  #geom_ribbon(aes(ymax = mean_N + sd_N, ymin = mean_N - sd_N), alpha = 0.2) + 
+  scale_x_log10() +
+  facet_wrap(~species) +
+  theme(axis.text = element_text(size = 8)) +
+  labs(x = "Dispersal rate", y = "Mean abundance\n(+/- max/min)", title = "Aboveground, equal competition") +
+  ggsave("figures/mean_abund_species_equal.pdf", width = 10, height = 3/4*10)
+
+
+above_stable %>% 
+    group_by(germination, species) %>% 
+    summarize(mean_N = mean(N), sd_N = sd(N)) %>% 
+    ggplot(aes(y = mean_N, x = germination)) + 
+    geom_point(alpha = 0.5) +
+    geom_line() +
+    geom_ribbon(aes(ymax = mean_N + sd_N, ymin = mean_N - sd_N), alpha = 0.2) + 
+    scale_x_log10() +
+    facet_wrap(~species)
+    
+  above_equal %>% 
+    group_by(germination, species) %>% 
+    summarize(mean_N = mean(N), sd_N = sd(N)) %>% 
+    ggplot(aes(y = mean_N, x = germination)) + 
+    geom_point(alpha = 0.5) +
+    geom_line() +
+    geom_ribbon(aes(ymax = mean_N + sd_N, ymin = mean_N - sd_N), alpha = 0.2) + 
+    scale_x_log10() +
+    facet_wrap(~species)
