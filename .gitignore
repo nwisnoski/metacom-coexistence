@@ -34,3 +34,7 @@ README.html
 *.log
 *.sh.o*
 *.sh.e*
+sim_output/total_dyn*
+final_equal.csv
+final_stable.csv
+out/
