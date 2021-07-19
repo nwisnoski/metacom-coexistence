@@ -10,7 +10,7 @@ theme_set(theme_light() +
                   legend.title = element_text(size = 14),
                   legend.text = element_text(size = 12)))
 
-sim_dat <- read_csv("sim_output/final_tradeoff_2021-07-13_200435.csv")
+sim_dat <- read_csv("sim_output/final_tradeoff_2021-07-14_185132.csv")
 
 
 alpha_out <- sim_dat %>% 
@@ -45,7 +45,7 @@ div_part_meansd <- div_part %>%
 equal_plot <- div_part_meansd %>% 
   #pivot_longer(cols = c("alpha", "beta", "gamma"), names_to = "partition", values_to = "diversity") %>% 
   filter(comp == "equal") %>% 
-  ggplot(aes(x = tradeoff_strength, y = diversity, color = partition)) + 
+  ggplot(aes(x = tradeoff_strength, y = diversity)) + 
   geom_jitter(alpha = 0.5, width = 0.2) +
   geom_point(aes(y = mean_diversity), size = 3) +
   geom_errorbar(aes(ymax = mean_diversity + sd_diversity, 
@@ -59,7 +59,7 @@ equal_plot <- div_part_meansd %>%
 stable_plot <- div_part_meansd %>% 
   #pivot_longer(cols = c("alpha", "beta", "gamma"), names_to = "partition", values_to = "diversity") %>% 
   filter(comp == "stable") %>% 
-  ggplot(aes(x = tradeoff_strength, y = diversity, color = partition)) + 
+  ggplot(aes(x = tradeoff_strength, y = diversity)) + 
   geom_jitter(alpha = 0.5, width = 0.2) +
   geom_point(aes(y = mean_diversity), size = 3) +
   geom_errorbar(aes(ymax = mean_diversity + sd_diversity, 
@@ -72,3 +72,18 @@ stable_plot <- div_part_meansd %>%
 
 equal_plot + stable_plot + 
   ggsave("figures/diversity_tradeoffs.pdf", width = 4.5*2, height = 3*3)
+
+
+# Scales on y-axis are hard to compare. So that's why I made two figures above and joined
+div_part_meansd %>% 
+  ggplot(aes(x = tradeoff_strength, y = diversity)) + 
+  geom_jitter(alpha = 0.5, width = 0.2) +
+  geom_point(aes(y = mean_diversity), size = 3) +
+  geom_errorbar(aes(ymax = mean_diversity + sd_diversity, 
+                    ymin = mean_diversity - sd_diversity), 
+                size = 1, 
+                width = 0.2) + 
+  facet_grid(partition~comp, scales = "free") +
+  theme(legend.position = "none") +
+  labs(x = "Trade-off strength", y = "Diversity")
+
