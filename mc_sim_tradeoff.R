@@ -96,8 +96,12 @@ for(x in conditions){
       #hist(seed_mass,breaks = 300)
       
       # retrying with a normal distribution, too much variance in lognormal
-      seed_mass <- rnorm(n = species, mean = 0, sd = 1)
+      # mean = 4.14 taken from mean of lognormal
+      seed_mass <- rnorm(n = species, mean = 4.14, sd = 2)
       hist(seed_mass, breaks = 30)
+      seed_mass <- seed_mass + abs(min(seed_mass))
+      hist(seed_mass, breaks = 30)
+      
       
       # then, based on known trade-offs, we generate the corresponding trait values
       disp <- seed_mass * disp_tradeoff + rnorm(species, sd = tradeoff_noise)
