@@ -20,11 +20,6 @@ extirp_prob <- 0.000
 conditions <- c("equal", "stable")
 tradeoff_strength <- c("strong", "weak", "none")
 
-# define trade-off strength with seed size
-disp_tradeoff <- -0.5
-germ_tradeoff <- -0.5
-surv_tradeoff <- 0.5
-
 
 timesteps <- 2000
 initialization <- 200
@@ -61,13 +56,22 @@ for(x in conditions){
   }
   
   for(y in tradeoff_strength){
+    
+    # define tradeoff strengths with seed size and noise 
     if(y == "strong"){
-      tradeoff_noise = 1
+      tradeoff_noise = .25
+      disp_tradeoff <- -0.5
+      germ_tradeoff <- -0.5
+      surv_tradeoff <- 0.5
     }
     if(y == "weak"){
-      tradeoff_noise = 2
+      tradeoff_noise = 1
+      disp_tradeoff <- -0.5
+      germ_tradeoff <- -0.5
+      surv_tradeoff <- 0.5
     }
     if(y == "none"){
+      tradeoff_noise = 1
       disp_tradeoff = 0
       germ_tradeoff = 0
       surv_tradeoff = 0
