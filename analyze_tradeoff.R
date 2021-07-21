@@ -10,7 +10,7 @@ theme_set(theme_light() +
                   legend.title = element_text(size = 14),
                   legend.text = element_text(size = 12)))
 
-sim_dat <- read_csv("sim_output/final_tradeoff_2021-07-14_185132.csv")
+sim_dat <- read_csv("sim_output/final_tradeoff_2021-07-20_172050.csv")
 
 
 alpha_out <- sim_dat %>% 
@@ -67,7 +67,8 @@ stable_plot <- div_part_meansd %>%
                 size = 1, 
                 width = 0.2) + 
   facet_grid(partition~comp, scales = "free") +
-  theme(legend.position = "none") +
+  theme(legend.position = "none",
+        axis.title.y = element_blank()) +
   labs(x = "Trade-off strength", y = "Diversity")
 
 equal_plot + stable_plot + 
@@ -77,7 +78,7 @@ equal_plot + stable_plot +
 # Scales on y-axis are hard to compare. So that's why I made two figures above and joined
 div_part_meansd %>% 
   ggplot(aes(x = tradeoff_strength, y = diversity)) + 
-  geom_jitter(alpha = 0.5, width = 0.2) +
+  geom_jitter(alpha = 0.5, width = 0.2, height = 0) +
   geom_point(aes(y = mean_diversity), size = 3) +
   geom_errorbar(aes(ymax = mean_diversity + sd_diversity, 
                     ymin = mean_diversity - sd_diversity), 
@@ -87,3 +88,87 @@ div_part_meansd %>%
   theme(legend.position = "none") +
   labs(x = "Trade-off strength", y = "Diversity")
 
+#####
+sim_dat %>% 
+  group_by(rep) %>% 
+  ggplot(aes(x = dispersal, y = germination, color = rep)) + 
+  geom_point() +
+  facet_grid(comp ~ tradeoff_strength) +
+  theme(axis.text = element_text(size = 10))
+
+
+
+### Quant analysis of traits
+trait_correlations <- sim_dat %>% 
+  group_by(tradeoff_strength, comp, rep) %>% 
+  summarize(disp_germ_corr = cor(dispersal, germination),
+            disp_surv_corr = cor(dispersal, survival),
+            germ_surv_corr = cor(germination, survival))
+
+ddisp_germ_equal_plot <- div_part_meansd %>% 
+  left_join(trait_correlations, by = c("tradeoff_strength", "comp", "rep")) %>% 
+  filter(comp == "equal") %>% 
+  ggplot(aes(x = disp_germ_corr, y = diversity)) + 
+  geom_point(alpha = 0.25) +
+  geom_smooth(method = "lm") +
+  facet_grid(partition~., scales = "free") +
+  theme(legend.position = "none") +
+  labs(title = "Dispersal-Germination", x = "Trait correlation", y = "Diversity")
+disp_germ_stable_plot <- div_part_meansd %>% 
+  left_join(trait_correlations, by = c("tradeoff_strength", "comp", "rep")) %>% 
+  filter(comp == "stable") %>% 
+  ggplot(aes(x = disp_germ_corr, y = diversity)) + 
+  geom_point(alpha = 0.25) +
+  geom_smooth(method = "lm") +
+  facet_grid(partition~., scales = "free") +
+  theme(legend.position = "none") +
+  labs(title = "Dispersal-Germination", x = "Trait correlation", y = "Diversity")
+disp_surv_equal_plot <- div_part_meansd %>% 
+  left_join(trait_correlations, by = c("tradeoff_strength", "comp", "rep")) %>% 
+  filter(comp == "equal") %>% 
+  ggplot(aes(x = disp_surv_corr, y = diversity)) + 
+  geom_point(alpha = 0.25) +
+  geom_smooth(method = "lm") +
+  facet_grid(partition~., scales = "free") +
+  theme(legend.position = "none", 
+        axis.title.y = element_blank()) +
+  labs(title = "Dispersal-Survival", x = "Trait correlation", y = "Diversity")
+disp_surv_stable_plot <- div_part_meansd %>% 
+  left_join(trait_correlations, by = c("tradeoff_strength", "comp", "rep")) %>% 
+  filter(comp == "stable") %>% 
+  ggplot(aes(x = disp_surv_corr, y = diversity)) + 
+  geom_point(alpha = 0.25) +
+  geom_smooth(method = "lm") +
+  facet_grid(partition~., scales = "free") +
+  theme(legend.position = "none",
+        axis.title.y = element_blank()) +
+  labs(title = "Dispersal-Survival", x = "Trait correlation", y = "Diversity")
+germ_surv_equal_plot <- div_part_meansd %>% 
+  left_join(trait_correlations, by = c("tradeoff_strength", "comp", "rep")) %>% 
+  filter(comp == "equal") %>% 
+  ggplot(aes(x = germ_surv_corr, y = diversity)) + 
+  geom_point(alpha = 0.25) +
+  geom_smooth(method = "lm") +
+  facet_grid(partition~., scales = "free") +
+  theme(legend.position = "none",
+        axis.title.y = element_blank()) +
+  labs(title = "Germination-Survival", x = "Trait correlation", y = "Diversity")
+germ_surv_stable_plot <- div_part_meansd %>% 
+  left_join(trait_correlations, by = c("tradeoff_strength", "comp", "rep")) %>% 
+  filter(comp == "stable") %>% 
+  ggplot(aes(x = germ_surv_corr, y = diversity)) + 
+  geom_point(alpha = 0.25) +
+  geom_smooth(method = "lm") +
+  facet_grid(partition~., scales = "free") +
+  theme(legend.position = "none",
+        axis.title.y = element_blank()) +
+  labs(title = "Germination-Survival", x = "Trait correlation", y = "Diversity")
+
+
+
+
+
+disp_germ_stable_plot + disp_surv_stable_plot + germ_surv_stable_plot +
+  ggsave("figures/diversity_tradeoffs_quantitative_stable.pdf",  width = 4.5*2, height = 3*3)
+disp_germ_equal_plot + disp_surv_equal_plot + germ_surv_equal_plot +
+  ggsave("figures/diversity_tradeoffs_quantitative_equal.pdf",  width = 4.5*2, height = 3*3)
