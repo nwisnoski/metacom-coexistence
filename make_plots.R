@@ -171,7 +171,7 @@ above_stable %>%
   facet_wrap(~species) +
   theme(axis.text = element_text(size = 8)) + 
   labs(x = "Dispersal rate", y = "Mean abundance\n(+/- max/min)", title = "Aboveground, stable competition") + 
-  ggsave("figures/mean_abund_species_stable.pdf", width = 10, height = 3/4*10)
+  ggsave("figures/mean_abund_species_above_stable.pdf", width = 10, height = 3/4*10)
 
 above_equal <- read_csv(equal_above)
 above_equal %>% 
@@ -186,25 +186,36 @@ above_equal %>%
   facet_wrap(~species) +
   theme(axis.text = element_text(size = 8)) +
   labs(x = "Dispersal rate", y = "Mean abundance\n(+/- max/min)", title = "Aboveground, equal competition") +
-  ggsave("figures/mean_abund_species_equal.pdf", width = 10, height = 3/4*10)
+  ggsave("figures/mean_abund_species_above_equal.pdf", width = 10, height = 3/4*10)
 
 
-above_stable %>% 
-    group_by(germination, species) %>% 
-    summarize(mean_N = mean(N), sd_N = sd(N)) %>% 
-    ggplot(aes(y = mean_N, x = germination)) + 
-    geom_point(alpha = 0.5) +
-    geom_line() +
-    geom_ribbon(aes(ymax = mean_N + sd_N, ymin = mean_N - sd_N), alpha = 0.2) + 
-    scale_x_log10() +
-    facet_wrap(~species)
-    
-  above_equal %>% 
-    group_by(germination, species) %>% 
-    summarize(mean_N = mean(N), sd_N = sd(N)) %>% 
-    ggplot(aes(y = mean_N, x = germination)) + 
-    geom_point(alpha = 0.5) +
-    geom_line() +
-    geom_ribbon(aes(ymax = mean_N + sd_N, ymin = mean_N - sd_N), alpha = 0.2) + 
-    scale_x_log10() +
-    facet_wrap(~species)
+below_stable <- read_csv(stable_below)
+below_stable %>% 
+  group_by(dispersal, species) %>% 
+  summarize(mean_N = mean(D), max_N = max(D), min_N = min(D), sd_N = sd(D)) %>% 
+  ggplot(aes(y = mean_N, x = dispersal)) + 
+  geom_point(alpha = 0.5) +
+  geom_line() +
+  geom_ribbon(aes(ymax = max_N, ymin = min_N), alpha = 0.2) + 
+  scale_x_log10() +
+  facet_wrap(~species) +
+  theme(axis.text = element_text(size = 8)) + 
+  labs(x = "Dispersal rate", y = "Mean belowground abundance\n(+/- max/min)", title = "Belowground, stable competition") + 
+  ggsave("figures/mean_abund_species_below_stable.pdf", width = 10, height = 3/4*10)
+
+below_equal <- read_csv(equal_below)
+below_equal %>% 
+  group_by(dispersal, species) %>% 
+  summarize(mean_N = mean(D), max_N = max(D), min_N = min(D), sd_N = sd(D)) %>% 
+  ggplot(aes(y = mean_N, x = dispersal)) + 
+  geom_point(alpha = 0.5) +
+  geom_line() +
+  geom_ribbon(aes(ymax = max_N, ymin = min_N), alpha = 0.2) + 
+  #geom_ribbon(aes(ymax = mean_N + sd_N, ymin = mean_N - sd_N), alpha = 0.2) + 
+  scale_x_log10() +
+  facet_wrap(~species) +
+  theme(axis.text = element_text(size = 8)) +
+  labs(x = "Dispersal rate", y = "Mean belowground abundance\n(+/- max/min)", title = "Belowground, equal competition") +
+  ggsave("figures/mean_abund_species_below_equal.pdf", width = 10, height = 3/4*10)
+
+
