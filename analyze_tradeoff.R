@@ -169,6 +169,6 @@ germ_surv_stable_plot <- div_part_meansd %>%
 
 
 disp_germ_stable_plot + disp_surv_stable_plot + germ_surv_stable_plot +
-  ggsave("figures/diversity_tradeoffs_quantitative_stable.pdf",  width = 4.5*2, height = 3*3)
+  ggsave("figures/diversity_tradeoffs_quantitative_stable.pdf",  width = 5*2, height = 2*3)
 disp_germ_equal_plot + disp_surv_equal_plot + germ_surv_equal_plot +
-  ggsave("figures/diversity_tradeoffs_quantitative_equal.pdf",  width = 4.5*2, height = 3*3)
+  ggsave("figures/diversity_tradeoffs_quantitative_equal.pdf",  width = 5*2, height = 2*3)

@@ -5,21 +5,24 @@ species <- 40
 
 tradeoff_strength <- c("strong", "weak", "none")
 
-# define trade-off strength with seed size
-disp_tradeoff <- -0.5
-germ_tradeoff <- -0.5
-surv_tradeoff <- 0.5
 
 tradeoff_df <- data.frame()
 
 for(y in tradeoff_strength){
   if(y == "strong"){
-    tradeoff_noise = 1
+    tradeoff_noise = .25
+    disp_tradeoff <- -0.5
+    germ_tradeoff <- -0.5
+    surv_tradeoff <- 0.5
   }
   if(y == "weak"){
-    tradeoff_noise = 2
+    tradeoff_noise = 1
+    disp_tradeoff <- -0.5
+    germ_tradeoff <- -0.5
+    surv_tradeoff <- 0.5
   }
   if(y == "none"){
+    tradeoff_noise = 1
     disp_tradeoff = 0
     germ_tradeoff = 0
     surv_tradeoff = 0
@@ -64,19 +67,26 @@ germ_disp_fig <- tradeoff_df %>%
   ggplot(aes(x = dispersal, y = germination)) +
   geom_point() +
   geom_smooth(method = "lm") +
-  facet_wrap(~tradeoff)
+  facet_wrap(~tradeoff) +
+  theme(axis.text = element_text(size=8)) +
+  scale_x_continuous(labels = scales::scientific_format())
 
 disp_surv_fig <- tradeoff_df %>% 
   ggplot(aes(x = dispersal, y = survival)) +
   geom_point() +
   geom_smooth(method = "lm") +
-  facet_wrap(~tradeoff)
+  facet_wrap(~tradeoff) +
+  theme(axis.text = element_text(size=8)) +
+  scale_x_continuous(labels = scales::scientific_format())
+
 
 germ_surv_fig <- tradeoff_df %>% 
   ggplot(aes(x = survival, y = germination)) +
   geom_point() +
   geom_smooth(method = "lm") +
-  facet_wrap(~tradeoff)
+  facet_wrap(~tradeoff) +
+  theme(axis.text = element_text(size=8))
+
 
 germ_disp_fig + disp_surv_fig + germ_surv_fig + 
   plot_layout(nrow = 3) +
