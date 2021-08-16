@@ -1,5 +1,6 @@
 library("tidyverse")
 library("patchwork")
+library("ggridges")
 
 theme_set(theme_light() + 
             theme(strip.text = element_text(color = "black", size = 14),
@@ -41,60 +42,6 @@ div_part_meansd <- div_part %>%
   summarize(mean_diversity = mean(diversity),
             sd_diversity = sd(diversity)) %>% 
   right_join(div_part)
-
-equal_plot <- div_part_meansd %>% 
-  #pivot_longer(cols = c("alpha", "beta", "gamma"), names_to = "partition", values_to = "diversity") %>% 
-  filter(comp == "equal") %>% 
-  ggplot(aes(x = tradeoff_strength, y = diversity)) + 
-  geom_jitter(alpha = 0.5, width = 0.2) +
-  geom_point(aes(y = mean_diversity), size = 3) +
-  geom_errorbar(aes(ymax = mean_diversity + sd_diversity, 
-                    ymin = mean_diversity - sd_diversity), 
-                size = 1, 
-                width = 0.2) + 
-  facet_grid(partition~comp, scales = "free") +
-  theme(legend.position = "none") + 
-  labs(x = "Trade-off strength", y = "Diversity")
-
-stable_plot <- div_part_meansd %>% 
-  #pivot_longer(cols = c("alpha", "beta", "gamma"), names_to = "partition", values_to = "diversity") %>% 
-  filter(comp == "stable") %>% 
-  ggplot(aes(x = tradeoff_strength, y = diversity)) + 
-  geom_jitter(alpha = 0.5, width = 0.2) +
-  geom_point(aes(y = mean_diversity), size = 3) +
-  geom_errorbar(aes(ymax = mean_diversity + sd_diversity, 
-                    ymin = mean_diversity - sd_diversity), 
-                size = 1, 
-                width = 0.2) + 
-  facet_grid(partition~comp, scales = "free") +
-  theme(legend.position = "none",
-        axis.title.y = element_blank()) +
-  labs(x = "Trade-off strength", y = "Diversity")
-
-equal_plot + stable_plot + 
-  ggsave("figures/diversity_tradeoffs.pdf", width = 4.5*2, height = 3*3)
-
-
-# Scales on y-axis are hard to compare. So that's why I made two figures above and joined
-div_part_meansd %>% 
-  ggplot(aes(x = tradeoff_strength, y = diversity)) + 
-  geom_jitter(alpha = 0.5, width = 0.2, height = 0) +
-  geom_point(aes(y = mean_diversity), size = 3) +
-  geom_errorbar(aes(ymax = mean_diversity + sd_diversity, 
-                    ymin = mean_diversity - sd_diversity), 
-                size = 1, 
-                width = 0.2) + 
-  facet_grid(partition~comp, scales = "free") +
-  theme(legend.position = "none") +
-  labs(x = "Trade-off strength", y = "Diversity")
-
-#####
-sim_dat %>% 
-  group_by(rep) %>% 
-  ggplot(aes(x = dispersal, y = germination, color = rep)) + 
-  geom_point() +
-  facet_grid(comp ~ tradeoff_strength) +
-  theme(axis.text = element_text(size = 10))
 
 
 
@@ -172,3 +119,54 @@ disp_germ_stable_plot + disp_surv_stable_plot + germ_surv_stable_plot +
   ggsave("figures/diversity_tradeoffs_quantitative_stable.pdf",  width = 5*2, height = 2*3)
 disp_germ_equal_plot + disp_surv_equal_plot + germ_surv_equal_plot +
   ggsave("figures/diversity_tradeoffs_quantitative_equal.pdf",  width = 5*2, height = 2*3)
+
+
+
+
+
+div_corrs <- div_part_meansd %>% 
+  # filter(partition == "alpha",
+  #        comp == "equal") %>% 
+  left_join(trait_correlations, by = c("tradeoff_strength", "comp", "rep"))
+
+
+trait_summaries <- sim_dat %>% 
+  group_by(tradeoff_strength, comp) %>% 
+  summarize(disp_mean = mean(dispersal),
+            disp_sd = sd(dispersal),
+            germ_mean = mean(germination),
+            germ_sd = sd(germination),
+            surv_mean = mean(survival),
+            surv_sd = sd(survival)) %>% 
+  group_by(tradeoff_strength, comp)
+
+# This data wrangling tip came from https://community.rstudio.com/t/pivot-longer-on-multiple-column-sets-pairs/43958/10
+trait_plot <- trait_summaries %>% 
+  pivot_longer(cols = disp_mean:surv_sd, 
+               names_to = c("trait", ".value"),
+               names_pattern = "(.+)_(.+)") %>% 
+  mutate(trait = case_when(
+    trait == "disp" ~ "Dispersal",
+    trait == "germ" ~ "Germination",
+    trait == "surv" ~ "Survival"
+  )) %>% 
+  
+  ggplot(aes(x = tradeoff_strength, y = mean, ymin = mean-sd, ymax = mean+sd, color = comp)) + 
+  geom_point(size = 2, alpha = 0.5, position = position_dodge(width = .5)) + 
+  geom_errorbar(width = .5, size = .5, position = position_dodge(width = .5)) +
+  facet_grid(~trait, scales = "free") +
+  coord_flip() +
+  theme(panel.grid = element_blank(),
+        axis.text = element_text(size = 10)) +
+  labs(y = "Trait mean (±s.d.)", x = "Correlation strength", 
+       color = "Competition") +
+  ggsave("figures/trait_values.pdf", width = 4*3, height = 3)
+
+
+## Make figure 4
+div_corr_plot <- div_part_meansd %>% 
+  ggplot(aes(x = diversity, y = tradeoff_strength)) + 
+  geom_density_ridges() + 
+  facet_grid(partition~comp, scales = "free_x") +
+  labs(x = "Diversity", y = "Trait correlation strength") +
+  ggsave("figures/diversity_covariation.pdf", width = 8, height = 8*3/4)
