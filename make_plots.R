@@ -32,7 +32,11 @@ make_plots <- function(competition){
     str_remove("sim_output/final_") %>% 
     str_split("_") %>% .[[1]] %>% .[2]
   
-  last_t_out <- read_csv(competition)
+  
+  # read data and ignore s=0.1 condition
+  last_t_out <- read_csv(competition) %>% 
+    filter(survival != 0.1)
+  
   
   disp_rates <- sort(unique(last_t_out$dispersal))
   germ_fracs <- sort(unique(last_t_out$germination))
@@ -58,9 +62,20 @@ make_plots <- function(competition){
     left_join(gamma_out) %>%
     mutate(beta = gamma / mean_alpha)
   
+  no_sb <- div_part %>% 
+    filter(germination == 1) %>% 
+    mutate(survival = "No seed bank")
+  
+  div_part <- div_part %>% 
+    mutate(
+      survival = case_when(
+        survival == 0.5 ~ "Surv = 0.5",
+        survival == 1 ~ "Surv. = 1"
+      )
+    ) %>% bind_rows(no_sb)
+  
   div_part %>%
-    mutate(germination = factor(germination, levels = germ_fracs, labels = paste("Germ. =", round(germ_fracs,2))),
-           survival = factor(survival, levels = surv_fracs, labels = paste("Surv. =", round(surv_fracs,2)))) %>%
+    mutate(germination = factor(germination, levels = germ_fracs, labels = paste("Germ. =", round(germ_fracs,2)))) %>%
     gather(mean_alpha, beta, gamma, key = "partition", value = "diversity") %>%
     mutate(partition = factor(partition, levels = c("mean_alpha", "beta", "gamma"),
                               labels = c("mean alpha", "beta", "gamma"))) %>%
@@ -76,8 +91,9 @@ make_plots <- function(competition){
     ggsave(paste0("figures/diversity_partitioning_", position, "_", condition_type,".pdf"), width = 8, height = 12)
   
   div_part %>%
-    mutate(#germination = factor(germination, levels = germ_fracs, labels = paste("Germ. =", round(germ_fracs,2))),
-      survival = factor(survival, levels = surv_fracs, labels = paste("Surv. =", round(surv_fracs,2)))) %>%
+    #filter(germination == 1) %>% 
+    # mutate(#germination = factor(germination, levels = germ_fracs, labels = paste("Germ. =", round(germ_fracs,2))),
+    #   survival = factor(survival, levels = surv_fracs, labels = c("No seed bank", "Surv. = 0.5", "Surv. = 1"))) %>%
     gather(mean_alpha, beta, gamma, key = "partition", value = "diversity") %>%
     mutate(partition = factor(partition, levels = c("mean_alpha", "beta", "gamma"),
                               labels = c("mean alpha", "beta", "gamma"))) %>%
@@ -107,8 +123,8 @@ make_plots <- function(competition){
     facet_grid(rows = vars(partition), cols = vars(germination), drop = TRUE, scales = "free_y") +
     scale_x_log10() +
     #scale_y_log10() +
-    scale_color_viridis_c("Survival", option = "D", end = .9) +
-    scale_fill_viridis_c("Survival", option = "D", end = .9) +
+    scale_color_viridis_d("Survival", option = "D", end = .9) +
+    scale_fill_viridis_d("Survival", option = "D", end = .9) +
     labs(y = "Diversity", x = "Dispersal") +
     theme(legend.position = "right") +
     ggsave(paste0("figures/survival_", position, "_", condition_type,".pdf"), width = 12, height = 8)
@@ -121,33 +137,33 @@ make_plots <- function(competition){
     gather(mean_alpha, beta, gamma, key = "partition", value = "diversity") %>%
     mutate(partition = factor(partition, levels = c("mean_alpha", "beta", "gamma"), 
                               labels = c("mean alpha", "beta", "gamma"))) 
-  germ_comp %>% 
-    ggplot(aes(x = dispersal, y = diversity, color = germination, fill = germination)) +
-    geom_point(alpha = 0.05) +
-    #geom_line(mapping = aes(group = paste(germination, rep)), stat = "smooth", alpha = 0.2, se = F) +
-    geom_smooth(alpha = 0.25) +
-    facet_grid(rows = vars(partition), drop = T, scales = "free_y") +
-    scale_x_log10() +
-    #scale_y_log10() +
-    scale_color_viridis_d("Germination", option = "D", end = .8, begin = .2) +
-    scale_fill_viridis_d("Germination", option = "D", end = .8, begin = .2) +
-    labs(y = "Diversity", x = "Dispersal") +
-    theme(legend.position = "top") +
-    ggsave(paste0("figures/single_diversity_partitioning_", position, "_", condition_type,".pdf"), height = 6, width = 4)
-  
-  germ_comp %>% 
-    ggplot(aes(x = dispersal, y = diversity, color = germination, fill = germination)) +
-    geom_point(data = filter(germ_comp, germination == "Germ. = 1"), alpha = 0.05) +
-    #geom_line(mapping = aes(group = paste(germination, rep)), stat = "smooth", alpha = 0.2, se = F) +
-    geom_smooth(data = filter(germ_comp, germination == "Germ. = 1"), alpha = 0.25) +
-    facet_grid(rows = vars(partition), drop = T, scales = "free_y") +
-    scale_x_log10() +
-    #scale_y_log10() +
-    scale_color_viridis_d("Germination", option = "D", end = .8, begin = .8) +
-    scale_fill_viridis_d("Germination", option = "D", end = .8, begin = .8) +
-    labs(y = "Diversity", x = "Dispersal") +
-    theme(legend.position = "top") +
-    ggsave(paste0("figures/single_diversity_partitioning_nodorm_", position, "_", condition_type,".pdf"), height = 6, width = 4)
+  # germ_comp %>% 
+  #   ggplot(aes(x = dispersal, y = diversity, color = germination, fill = germination)) +
+  #   geom_point(alpha = 0.05) +
+  #   #geom_line(mapping = aes(group = paste(germination, rep)), stat = "smooth", alpha = 0.2, se = F) +
+  #   geom_smooth(alpha = 0.25) +
+  #   facet_grid(rows = vars(partition), drop = T, scales = "free_y") +
+  #   scale_x_log10() +
+  #   #scale_y_log10() +
+  #   scale_color_viridis_d("Germination", option = "D", end = .8, begin = .2) +
+  #   scale_fill_viridis_d("Germination", option = "D", end = .8, begin = .2) +
+  #   labs(y = "Diversity", x = "Dispersal") +
+  #   theme(legend.position = "top") +
+  #   ggsave(paste0("figures/single_diversity_partitioning_", position, "_", condition_type,".pdf"), height = 6, width = 4)
+  # 
+  # germ_comp %>% 
+  #   ggplot(aes(x = dispersal, y = diversity, color = germination, fill = germination)) +
+  #   geom_point(data = filter(germ_comp, germination == "Germ. = 1"), alpha = 0.05) +
+  #   #geom_line(mapping = aes(group = paste(germination, rep)), stat = "smooth", alpha = 0.2, se = F) +
+  #   geom_smooth(data = filter(germ_comp, germination == "Germ. = 1"), alpha = 0.25) +
+  #   facet_grid(rows = vars(partition), drop = T, scales = "free_y") +
+  #   scale_x_log10() +
+  #   #scale_y_log10() +
+  #   scale_color_viridis_d("Germination", option = "D", end = .8, begin = .8) +
+  #   scale_fill_viridis_d("Germination", option = "D", end = .8, begin = .8) +
+  #   labs(y = "Diversity", x = "Dispersal") +
+  #   theme(legend.position = "top") +
+  #   ggsave(paste0("figures/single_diversity_partitioning_nodorm_", position, "_", condition_type,".pdf"), height = 6, width = 4)
   
 }
 
