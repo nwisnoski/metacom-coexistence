@@ -43,6 +43,7 @@ dynamics_total <- data.table()
 start_sim <- Sys.time()
 
 for(e in 1:nenvs){
+  landscape <- init_landscape(patches = patches, x_dim = x_dim, y_dim = y_dim)
   env_df <- env_generate(landscape = landscape, env1Scale = 500, 
                          timesteps = timesteps+burn_in, plot = FALSE)
   
@@ -66,7 +67,6 @@ for(e in 1:nenvs){
     for(rep in 1:nsims){
       
       # make new landscape, environmental data, and draw new competition coefficients
-      landscape <- init_landscape(patches = patches, x_dim = x_dim, y_dim = y_dim)
       
       int_mat <- species_int_mat(species = species, intra = intra,
                                  min_inter = min_inter, max_inter = max_inter,
