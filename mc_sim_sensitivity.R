@@ -8,8 +8,8 @@ source("metacom_functions.R")
 
 
 # define parameters
-nsims <- 100
-nenvs <- 10
+nsims <- 250
+nenvs <- 20
 
 x_dim <- 100
 y_dim <- 100
