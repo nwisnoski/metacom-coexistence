@@ -7,12 +7,20 @@ normalize = function(x){
   return(normalized)
 }
 
+theme_set(theme_light() + 
+            theme(strip.text = element_text(color = "black", size = 14),
+                  strip.background = element_rect(fill = "gray90"),
+                  axis.text = element_text(size = 14),
+                  axis.title = element_text(size = 16),
+                  axis.ticks.length = unit(x = .2, units = "cm"),
+                  legend.title = element_text(size = 14),
+                  legend.text = element_text(size = 12)))
 
-sim_dat <- read_csv(file = "sim_output/final_sensitivity_2021-09-13_123137.csv")
+sim_dat <- read_csv(file = "sim_output/final_sensitivity_2021-09-29_001433.csv")
 
-params <- sim_dat %>% 
-  select(rep, dispersal, germination, survival, comp) %>% 
-  unique()
+# params <- sim_dat %>% 
+#   select(rep, dispersal, germination, survival, comp) %>% 
+#   unique()
 
 alpha <- sim_dat %>% 
   group_by(patch, rep, dispersal, germination, survival, comp) %>% 
@@ -20,8 +28,8 @@ alpha <- sim_dat %>%
   summarize(alpha = sum(N_pa)) %>%
   ungroup() %>% 
   group_by(rep, comp) %>%
-  summarize(mean_alpha = mean(alpha)) %>% 
-  left_join(params, by = c("rep", "comp"))
+  summarize(mean_alpha = mean(alpha))
+  # left_join(params, by = c("rep", "comp"))
 
 gamma <- sim_dat %>% 
   mutate(N_pa = 1*(N > 0)) %>%
@@ -32,7 +40,14 @@ gamma <- sim_dat %>%
 
 div_part <- alpha %>% 
   left_join(gamma) %>% 
-  mutate(beta = gamma / mean_alpha)
+  mutate(beta = gamma / mean_alpha) %>% 
+  mutate(beta = ifelse(is.nan(beta), 0, beta))
+
+# normalize and transform variables
+
+div_part$mean_alpha <- normalize(div_part$mean_alpha)
+div_part$beta <- normalize(div_part$beta)
+div_part$gamma <- normalize(div_part$gamma)
 
 alpha_mod_eq <- lm(mean_alpha ~ normalize(log(dispersal)) * germination * survival, data = subset(div_part, comp == "equal"))
 summary(alpha_mod_eq)
@@ -50,6 +65,28 @@ beta_mod_stab <- lm(beta ~ normalize(log(dispersal)) * germination * survival, d
 summary(beta_mod_stab)
 
 gamma_mod_stab <- lm(gamma ~ normalize(log(dispersal)) * germination * survival, data = subset(div_part, comp == "stable"))
+summary(gamma_mod_stab)
+
+
+
+
+# try with quadratic terms
+alpha_mod_eq <- lm(mean_alpha ~ dispersal + germination + survival + I(dispersal^2) + I(germination^2) + I(survival^2), data = subset(div_part, comp == "equal"))
+summary(alpha_mod_eq)
+
+beta_mod_eq <- lm(beta ~ dispersal + germination + survival + I(dispersal^2) + I(germination^2) + I(survival^2), data = subset(div_part, comp == "equal"))
+summary(beta_mod_eq)
+
+gamma_mod_eq <- lm(gamma ~ dispersal + germination + survival + I(dispersal^2) + I(germination^2) + I(survival^2), data = subset(div_part, comp == "equal"))
+summary(gamma_mod_eq)
+
+alpha_mod_stab <- lm(mean_alpha ~ dispersal + germination + survival + I(dispersal^2) + I(germination^2) + I(survival^2), data = subset(div_part, comp == "stable"))
+summary(alpha_mod_stab)
+
+beta_mod_stab <- lm(beta ~ dispersal + germination + survival + I(dispersal^2) + I(germination^2) + I(survival^2), data = subset(div_part, comp == "stable"))
+summary(beta_mod_stab)
+
+gamma_mod_stab <- lm(gamma ~ dispersal + germination + survival + I(dispersal^2) + I(germination^2) + I(survival^2), data = subset(div_part, comp == "stable"))
 summary(gamma_mod_stab)
 
 
@@ -76,16 +113,42 @@ sens_out$term <- str_wrap(str_replace(string = sens_out$term, pattern = coll("no
 
 my_cols <- qualitative_hcl(n = 3)
 
+sens_out$term <- factor(sens_out$term, 
+                        levels = 
+                          c("Intercept", "dispersal", "germination", "survival",
+                          "I(dispersal^2)", "I(germination^2)", "I(survival^2)"))
+sens_out <- sens_out %>% 
+  mutate(term = recode_factor(term,
+    `Intercept` = "intercept",
+    `dispersal` = "dispersal",
+    `I(dispersal^2)` = "dispersal^2",
+    
+    `germination` = "germination",
+    `I(germination^2)` = "germination^2",
+    
+    `survival` = "survival",
+    `I(survival^2)` = "survival^2"
+  ))
+
+x_axis_labs <- c(expression(intercept), 
+                 "dispersal",
+                 expression(dispersal^2),
+                 "germination",
+                 expression(germination^2),
+                 "survival",
+                 expression(survival^2))
+
 sensitivity_plot <- sens_out %>% 
-  mutate(term = factor(term, levels = c(
-    "Intercept", "dispersal", "germination", "survival",
-    "dispersal:germination", "dispersal:survival", "germination:survival",
-    "dispersal:germination:survival"
-  ), labels = c(
-    "intercept", "dispersal", "germination", "survival",
-    "dispersal x \n germination", "dispersal x \n survival", "germination x \n survival",
-    "dispersal x \n germination x \n survival"
-  ))) %>% 
+  # mutate(term = factor(term, levels = c(
+  #   "Intercept", "dispersal", "germination", "survival",
+  #   "dispersal:germination", "dispersal:survival", "germination:survival",
+  #   "dispersal:germination:survival"
+  # ), labels = c(
+  #   "intercept", "dispersal", "germination", "survival",
+  #   "dispersal x \n germination", "dispersal x \n survival", "germination x \n survival",
+  #   "dispersal x \n germination x \n survival"
+  # ))) %>%
+  
   ggplot(aes(y = estimate, ymin = (estimate - std.error), ymax = (estimate + std.error),
              color = response, fill = response, x = term)) +
   geom_bar(stat = "identity",
@@ -93,11 +156,13 @@ sensitivity_plot <- sens_out %>%
   geom_errorbar(position = position_dodge(.9), width = 0.5, show.legend = FALSE) +
   scale_color_manual(values = darken(my_cols, amount = .2)) + 
   scale_fill_manual(values = my_cols) +
-  theme_bw() + theme(panel.grid.major.x = element_blank(),
-                     panel.grid.minor.x = element_blank(),
-                     legend.position = c(.08,.9)) +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        legend.position = c(.08,.9),
+        axis.text.x = element_text(margin = margin(t = 10), vjust = 0)) +
   facet_wrap(~comp, nrow = 2) +
-  labs(x = "", y = "Effect Size", fill = "Diversity level", color = "Diversity level")
+  labs(x = "", y = "Effect Size", fill = "Diversity level", color = "Diversity level") +
+  scale_x_discrete(labels = x_axis_labs)
 
 sensitivity_plot
 
