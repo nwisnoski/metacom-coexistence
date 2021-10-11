@@ -22,21 +22,34 @@ sim_dat <- read_csv(file = "sim_output/final_sensitivity_2021-09-29_001433.csv")
 #   select(rep, dispersal, germination, survival, comp) %>% 
 #   unique()
 
-alpha <- sim_dat %>% 
-  group_by(patch, rep, dispersal, germination, survival, comp) %>% 
-  mutate(N_pa = 1*(N > 0)) %>%
-  summarize(alpha = sum(N_pa)) %>%
+nenvs <- 20
+nreps <- 250
+nspecies <- 40
+npatchs <- 100
+
+nenvs * nreps * nspecies * npatchs * 2 == nrow(sim_dat)
+
+# re-assign environment scenario to group by
+sim_dat$envscenario <- rep(1:nenvs, each = (nreps * nspecies * npatchs * 2))
+
+sim_dat %>% 
+  group_by(patch, envscenario, rep, dispersal, germination, survival, comp) %>% 
+  summarize(alpha = sum(1*(N>0))) %>%
   ungroup() %>% 
-  group_by(rep, comp) %>%
+  group_by(rep, envscenario, comp) %>%
   summarize(mean_alpha = mean(alpha))
-  # left_join(params, by = c("rep", "comp"))
+# left_join(params, by = c("rep", "comp"))
+write_csv(alpha, file = "summarized_output/sens_analysis_alphadiv.csv")
 
 gamma <- sim_dat %>% 
   mutate(N_pa = 1*(N > 0)) %>%
-  group_by(comp, rep, dispersal, germination, survival, species) %>%
-
+  group_by(comp, envscenario, rep, dispersal, germination, survival, species) %>%
+  
   summarize(presences = sum(N_pa)) %>% 
   summarize(gamma = sum(presences > 0))
+write_csv(gamma, file = "summarized_output/sens_analysis_gammadiv.csv")
+
+
 
 div_part <- alpha %>% 
   left_join(gamma) %>% 
@@ -71,6 +84,7 @@ summary(gamma_mod_stab)
 
 
 # try with quadratic terms
+div_part$dispersal <- normalize(log(div_part$dispersal))
 alpha_mod_eq <- lm(mean_alpha ~ dispersal + germination + survival + I(dispersal^2) + I(germination^2) + I(survival^2), data = subset(div_part, comp == "equal"))
 summary(alpha_mod_eq)
 
@@ -105,7 +119,7 @@ sens_out <- tidy(alpha_mod_eq) %>%
        mutate(response = "beta", comp = "stable")), 
     (tidy(gamma_mod_stab) %>% 
        mutate(response = "gamma", comp = "stable"))
-      ) 
+  ) 
 
 sens_out$term <- str_replace(string = sens_out$term, pattern = coll("(Intercept)"), replacement =  "Intercept")
 sens_out$term <- str_wrap(str_replace(string = sens_out$term, pattern = coll("normalize(log(dispersal))"), replacement =  "dispersal"), width = 10)
@@ -116,18 +130,18 @@ my_cols <- qualitative_hcl(n = 3)
 sens_out$term <- factor(sens_out$term, 
                         levels = 
                           c("Intercept", "dispersal", "germination", "survival",
-                          "I(dispersal^2)", "I(germination^2)", "I(survival^2)"))
+                            "I(dispersal^2)", "I(germination^2)", "I(survival^2)"))
 sens_out <- sens_out %>% 
   mutate(term = recode_factor(term,
-    `Intercept` = "intercept",
-    `dispersal` = "dispersal",
-    `I(dispersal^2)` = "dispersal^2",
-    
-    `germination` = "germination",
-    `I(germination^2)` = "germination^2",
-    
-    `survival` = "survival",
-    `I(survival^2)` = "survival^2"
+                              `Intercept` = "intercept",
+                              `dispersal` = "dispersal",
+                              `I(dispersal^2)` = "dispersal^2",
+                              
+                              `germination` = "germination",
+                              `I(germination^2)` = "germination^2",
+                              
+                              `survival` = "survival",
+                              `I(survival^2)` = "survival^2"
   ))
 
 x_axis_labs <- c(expression(intercept), 
@@ -167,5 +181,5 @@ sensitivity_plot <- sens_out %>%
 sensitivity_plot
 
 ggsave(filename = "figures/sensitivity_analysis.pdf",plot = sensitivity_plot, width = 10, height = 8)
-  
-  
+
+
