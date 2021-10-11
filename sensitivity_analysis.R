@@ -62,23 +62,23 @@ div_part$mean_alpha <- normalize(div_part$mean_alpha)
 div_part$beta <- normalize(div_part$beta)
 div_part$gamma <- normalize(div_part$gamma)
 
-alpha_mod_eq <- lm(mean_alpha ~ normalize(log(dispersal)) * germination * survival, data = subset(div_part, comp == "equal"))
-summary(alpha_mod_eq)
-
-beta_mod_eq <- lm(beta ~ normalize(log(dispersal)) * germination * survival, data = subset(div_part, comp == "equal"))
-summary(beta_mod_eq)
-
-gamma_mod_eq <- lm(gamma ~ normalize(log(dispersal)) * germination * survival, data = subset(div_part, comp == "equal"))
-summary(gamma_mod_eq)
-
-alpha_mod_stab <- lm(mean_alpha ~ normalize(log(dispersal)) * germination * survival, data = subset(div_part, comp == "stable"))
-summary(alpha_mod_stab)
-
-beta_mod_stab <- lm(beta ~ normalize(log(dispersal)) * germination * survival, data = subset(div_part, comp == "stable"))
-summary(beta_mod_stab)
-
-gamma_mod_stab <- lm(gamma ~ normalize(log(dispersal)) * germination * survival, data = subset(div_part, comp == "stable"))
-summary(gamma_mod_stab)
+# alpha_mod_eq <- lm(mean_alpha ~ normalize(log(dispersal)) * germination * survival, data = subset(div_part, comp == "equal"))
+# summary(alpha_mod_eq)
+# 
+# beta_mod_eq <- lm(beta ~ normalize(log(dispersal)) * germination * survival, data = subset(div_part, comp == "equal"))
+# summary(beta_mod_eq)
+# 
+# gamma_mod_eq <- lm(gamma ~ normalize(log(dispersal)) * germination * survival, data = subset(div_part, comp == "equal"))
+# summary(gamma_mod_eq)
+# 
+# alpha_mod_stab <- lm(mean_alpha ~ normalize(log(dispersal)) * germination * survival, data = subset(div_part, comp == "stable"))
+# summary(alpha_mod_stab)
+# 
+# beta_mod_stab <- lm(beta ~ normalize(log(dispersal)) * germination * survival, data = subset(div_part, comp == "stable"))
+# summary(beta_mod_stab)
+# 
+# gamma_mod_stab <- lm(gamma ~ normalize(log(dispersal)) * germination * survival, data = subset(div_part, comp == "stable"))
+# summary(gamma_mod_stab)
 
 
 
@@ -178,7 +178,7 @@ sensitivity_plot <- sens_out %>%
   labs(x = "", y = "Effect Size", fill = "Diversity level", color = "Diversity level") +
   scale_x_discrete(labels = x_axis_labs)
 
-sensitivity_plot
+#sensitivity_plot
 
 ggsave(filename = "figures/sensitivity_analysis.pdf",plot = sensitivity_plot, width = 10, height = 8)
 
