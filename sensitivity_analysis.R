@@ -248,6 +248,22 @@ sens_out <- tidy(alpha_mod_eq) %>%
 
 my_cols <- qualitative_hcl(n = 3)
 
+sens_out$term <- factor(sens_out$term, 
+                        levels = 
+                          c("(Intercept)", "dispersal", "I(dispersal^2)", 
+                            "germination", "I(germination^2)",
+                            "survival", "I(survival^2)",
+                            "dispersal:germination", "dispersal:survival", 
+                            "germination:survival", "dispersal:germination:survival"))
+x_axis_labs <- c("intercept", 
+                 "dispersal",
+                 expression(dispersal^2),
+                 "germination",
+                 expression(germination^2),
+                 "survival",
+                 expression(survival^2),
+                 "dispersal:germination", "dispersal:survival", 
+                 "germination:survival", "dispersal:germination:survival")
 
 int_sensitivity_plot <- sens_out %>% 
   # mutate(term = factor(term, levels = c(
@@ -262,6 +278,7 @@ int_sensitivity_plot <- sens_out %>%
   
   ggplot(aes(y = estimate, ymin = (estimate - std.error), ymax = (estimate + std.error),
              color = response, fill = response, x = term)) +
+  geom_vline(xintercept = c(1:10+0.5), alpha = 0.5, color = "gray50", size = 0.2) +
   geom_bar(stat = "identity",
            position = position_dodge(), alpha = 0.7) +
   geom_errorbar(position = position_dodge(.9), width = 0.5, show.legend = FALSE) +
@@ -269,14 +286,14 @@ int_sensitivity_plot <- sens_out %>%
   scale_fill_manual(values = my_cols) +
   theme(panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
-        legend.position = c(.93,.62),
+        legend.position = c(.05,.92),
         legend.background = element_rect(color = "black"),
         legend.text = element_text(size = 10),
         legend.title = element_text(size = 11),
         axis.text.x = element_text(size = 12, angle = 45, hjust = 1)) +
   facet_wrap(~comp, nrow = 2) +
-  labs(x = "", y = "Effect Size", fill = "Diversity level", color = "Diversity level") #+
-  # coord_flip()
+  labs(x = "", y = "Effect Size", fill = "Diversity level", color = "Diversity level") +
+  scale_x_discrete(labels = x_axis_labs)
 
 int_sensitivity_plot
 ggsave("figures/sensitivity_analysis_int_quad.pdf", width = 15, height = 10)
