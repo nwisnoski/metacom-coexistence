@@ -140,7 +140,7 @@ int_sensitivity_plot <- sens_out %>%
   
   ggplot(aes(y = estimate, ymin = (estimate - std.error), ymax = (estimate + std.error),
              color = response, fill = response, x = term)) +
-  geom_vline(xintercept = c(1:10+0.5), alpha = 0.5, color = "gray50", size = 0.2) +
+  geom_vline(xintercept = c(1:9+0.5), alpha = 0.5, color = "gray50", size = 0.2) +
   geom_bar(stat = "identity",
            position = position_dodge(), alpha = 0.7) +
   geom_errorbar(position = position_dodge(.9), width = 0.5, show.legend = FALSE) +
