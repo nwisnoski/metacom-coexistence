@@ -155,7 +155,7 @@ int_sensitivity_plot <- sens_out %>%
         legend.key.size = unit(0.1, units = "in"),
         axis.text.x = element_text(size = 12, angle = 45, hjust = 1, margin = margin(t =10))) +
   facet_wrap(~comp, nrow = 2) +
-  labs(x = "", y = "Effect Size", fill = "Diversity level", color = "Diversity level") +
+  labs(x = "", y = "Effect Size", fill = "Diversity", color = "Diversity") +
   scale_x_discrete(labels = x_axis_labs)
 
 int_sensitivity_plot
