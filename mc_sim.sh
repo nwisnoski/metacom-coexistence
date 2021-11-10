@@ -7,10 +7,10 @@
 #SBATCH --mem=124GB
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=nathan.wisnoski@uwyo.edu
-#SBATCH --job-name=metacom_95
+#SBATCH --job-name=metacom_99
 
 cd /gscratch/nwisnosk/GitHub/metacom-coexistence
 
 module load gcc/7.3.0 r/3.6.1
 
-R CMD BATCH --no-restore --no-save mc_sim_0.95.R mc_sim95.log
+R CMD BATCH --no-restore --no-save mc_sim_0.99.R mc_sim99.log
