@@ -35,7 +35,7 @@ make_plots <- function(competition){
   
   # read data and ignore s=0.1 condition
   last_t_out <- read_csv(competition) %>% 
-    filter(survival %in% c(0.5, 0.95))
+    filter(survival %in% c(0.5, 0.99))
   
   
   disp_rates <- sort(unique(last_t_out$dispersal))
@@ -70,7 +70,7 @@ make_plots <- function(competition){
     mutate(
       survival = case_when(
         survival == 0.5 ~ "Survival = 0.5",
-        survival == 1 ~ "Survival = 0.95"
+        survival == 0.99 ~ "Survival = 0.99"
       )
     ) %>% bind_rows(no_sb)
   # 
