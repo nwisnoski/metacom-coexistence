@@ -2,10 +2,7 @@ library("tidyverse")
 library("broom")
 library("colorspace")
 
-normalize = function(x){
-  normalized = (x-min(x))/(max(x)-min(x))
-  return(normalized)
-}
+
 
 theme_set(theme_light() + 
             theme(strip.text = element_text(color = "black", size = 14),
@@ -128,16 +125,7 @@ x_axis_labs <- c("dispersal",
                  "germination : survival", "dispersal : germination : survival")
 
 int_sensitivity_plot <- sens_out %>% 
-  # mutate(term = factor(term, levels = c(
-  #   "Intercept", "dispersal", "germination", "survival",
-  #   "dispersal:germination", "dispersal:survival", "germination:survival",
-  #   "dispersal:germination:survival"
-  # ), labels = c(
-  #   "intercept", "dispersal", "germination", "survival",
-  #   "dispersal x \n germination", "dispersal x \n survival", "germination x \n survival",
-  #   "dispersal x \n germination x \n survival"
-  # ))) %>%
-  
+ 
   ggplot(aes(y = estimate, ymin = (estimate - std.error), ymax = (estimate + std.error),
              color = response, fill = response, x = term)) +
   geom_vline(xintercept = c(1:9+0.5), alpha = 0.5, color = "gray50", size = 0.2) +

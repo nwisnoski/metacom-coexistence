@@ -92,9 +92,6 @@ for(e in 1:nenvs){
                                      env_niche_optima = "even")
       
       disp_array <- generate_dispersal_matrices(landscape, species, patches, species_traits, torus = FALSE)
-      # int_mat <- species_int_mat(species = species, intra = intra,
-      #                            min_inter = min_inter, max_inter = max_inter,
-      #                            comp_scaler = comp_scaler, plot = TRUE)
       
       
       N <- init_community(initialization = initialization, species = species, patches = patches)
@@ -114,9 +111,6 @@ for(e in 1:nenvs){
         
         # compute r
         r <- compute_r_xt(species_traits, env = env, species = species)
-        
-        # compute growth
-        #N_hat <- N*r / (1 + N%*%int_mat)
         
         # who germinates? Binomial distributed
         N_germ <- germination(N + D, species_traits)
@@ -139,15 +133,6 @@ for(e in 1:nenvs){
         
         dispSP <- colSums(E)
         
-        # determine immigrants to each patch
-        # I_hat_raw <- disp_array[,,1]%*%E
-        # I_hat <- t(t(I_hat_raw)/colSums(I_hat_raw))
-        # I_hat[is.nan(I_hat)] <- 1
-        # I <- sapply(1:species, function(x) {
-        #   if(dispSP[x]>0){
-        #     table(factor(sample(x = patches, size = dispSP[x], replace = TRUE, prob = I_hat[,x]), levels = 1:patches))
-        #   } else {rep(0, patches)}
-        # })
         
         I_hat_raw <- matrix(nrow = patches, ncol = species)
         
