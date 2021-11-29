@@ -1,5 +1,8 @@
 Examining diversity in metacommunities with dormant seed banks.
 
+[![DOI](https://zenodo.org/badge/288286093.svg)](https://zenodo.org/badge/latestdoi/288286093)
+
+
 This repository contains the code to reproduce the manuscript: 
 
 **Wisnoski NI, and LG Shoemaker. "Seed banks alter metacommunity diversity: the interactive effects of competition, dispersal, and dormancy"**
