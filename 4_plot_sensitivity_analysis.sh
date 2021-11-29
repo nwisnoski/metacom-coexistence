@@ -14,4 +14,4 @@ cd /gscratch/nwisnosk/GitHub/metacom-coexistence
 
 module load gcc/7.3.0 r/3.6.1
 
-R CMD BATCH --no-restore --no-save sensitivity_analysis.R sensitivity_analysis.log
+R CMD BATCH --no-restore --no-save 4_plot_sensitivity_analysis.R plot_sensitivity_analysis.log

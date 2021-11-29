@@ -28,7 +28,7 @@ set.seed(82072)
 
 disp_rates <- 10^seq(-5, 0, length.out = 50)
 germ_fracs <- seq(.1,1, length.out = 10)
-surv_fracs <- c(.1, .5, 1)
+surv_fracs <- c(.5, .99)
 
 params <- expand.grid(disp_rates, germ_fracs, surv_fracs)
 
@@ -84,9 +84,7 @@ for(x in conditions){
                                                               env_niche_optima = "even")
                                
                                disp_array <- generate_dispersal_matrices(landscape, species, patches, species_traits, torus = FALSE)
-                               # int_mat <- species_int_mat(species = species, intra = intra,
-                               #                            min_inter = min_inter, max_inter = max_inter,
-                               #                            comp_scaler = comp_scaler, plot = TRUE)
+                               
                                
                                
                                N <- init_community(initialization = initialization, species = species, patches = patches)
@@ -107,8 +105,6 @@ for(x in conditions){
                                  # compute r
                                  r <- compute_r_xt(species_traits, env = env, species = species)
                                  
-                                 # compute growth
-                                 #N_hat <- N*r / (1 + N%*%int_mat)
                                  
                                  # who germinates? Binomial distributed
                                  N_germ <- germination(N + D, species_traits)
@@ -131,15 +127,7 @@ for(x in conditions){
                                  
                                  dispSP <- colSums(E)
                                  
-                                 # determine immigrants to each patch
-                                 # I_hat_raw <- disp_array[,,1]%*%E
-                                 # I_hat <- t(t(I_hat_raw)/colSums(I_hat_raw))
-                                 # I_hat[is.nan(I_hat)] <- 1
-                                 # I <- sapply(1:species, function(x) {
-                                 #   if(dispSP[x]>0){
-                                 #     table(factor(sample(x = patches, size = dispSP[x], replace = TRUE, prob = I_hat[,x]), levels = 1:patches))
-                                 #   } else {rep(0, patches)}
-                                 # })
+                                 
                                  
                                  I_hat_raw <- matrix(nrow = patches, ncol = species)
                                  
@@ -181,14 +169,7 @@ for(x in conditions){
                                                        dynamics_i)
                                }
                                
-                               # every 20 tsteps?
-                               # dynamics_subset <- dynamics_out %>% 
-                               #   filter(time %in% seq(0, timesteps, by = 20))
-                               
-                               #dynamics_total <- rbind(dynamics_total, dynamics_subset)
-                               
-                               #saveRDS(dynamics_out, file = paste0("sim_output/sim_disp",disp,"_germ_",germ,"_surv_",surv,"_maxinter_",max_inter,"_mininter_",min_inter,".rds"))
-                               
+                              
                                
                                return(dynamics_out)
                              }

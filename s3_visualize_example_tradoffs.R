@@ -28,10 +28,7 @@ for(y in tradeoff_strength){
     surv_tradeoff = 0
   }
   
-  # seed_mass = exp(rnorm(n = species, mean = 0, sd = 3.45/2))
-  # sd(seed_mass)/mean(seed_mass)
-  # hist(seed_mass,breaks = 30)
-  # retrying with a normal distribution, too much variance in lognormal
+  
   seed_mass <- rnorm(n = species, mean = 4.14, sd = 2)
   hist(seed_mass, breaks = 30)
   seed_mass <- seed_mass + abs(min(seed_mass))
